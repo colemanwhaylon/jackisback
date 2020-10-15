@@ -3,7 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JackIsBack", "JackIsBack.csproj", "{FBFE2594-043F-47D8-B66A-BCDE2D12D471}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JackIsBack", "JackIsBack.csproj", "{FBFE2594-043F-47D8-B66A-BCDE2D12D471}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DB5109E4-EBC0-42D2-AFEB-EB78A9661BC1}"
+	ProjectSection(SolutionItems) = preProject
+		Twitter_Keys.txt = Twitter_Keys.txt
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JackIsBack.Console", "..\JackIsBack.Console\JackIsBack.Console.csproj", "{82517665-9DB2-4AF0-A125-03390E019980}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +22,10 @@ Global
 		{FBFE2594-043F-47D8-B66A-BCDE2D12D471}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBFE2594-043F-47D8-B66A-BCDE2D12D471}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBFE2594-043F-47D8-B66A-BCDE2D12D471}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82517665-9DB2-4AF0-A125-03390E019980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82517665-9DB2-4AF0-A125-03390E019980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82517665-9DB2-4AF0-A125-03390E019980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82517665-9DB2-4AF0-A125-03390E019980}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

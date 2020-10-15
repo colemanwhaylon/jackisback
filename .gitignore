@@ -5,3 +5,7 @@
 /.vs
 /JackIsBack/obj
 /JackIsBack/.vs/JackIsBack/v16
+/JackIsBack/.vs/JackIsBack/DesignTimeBuild
+/JackIsBack/bin/Debug/netstandard2.0
+/JackIsBack.Console/obj
+/JackIsBack.Console/bin/Debug/netcoreapp3.1
