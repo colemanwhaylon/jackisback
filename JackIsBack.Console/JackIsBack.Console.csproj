@@ -7,6 +7,10 @@
 
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.4.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
+    <PackageReference Include="TweetinviAPI" Version="5.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,6 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="output.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="tweetsample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
