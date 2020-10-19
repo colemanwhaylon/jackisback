@@ -1,32 +1,104 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Akka.Actor;
-using Akka.Actor.Internal;
-using JackIsBack;
-using JackIsBack.Console.Messages;
+using JackIsBack.Console.Actors;
 using Tweetinvi;
-using Tweetinvi.Auth;
 using Tweetinvi.Events;
 using Tweetinvi.Streaming;
 
 namespace JackIsBack.Console
 {
-    public class Driver : IDisposable
+    public class Driver
     {
-        //private static ActorSystem TwitterStreamingActorSystem;
-        private readonly HttpClient _client = new HttpClient();
-        private TwitterInfo _twitterInfo = new TwitterInfo();
+        private HttpClient _httpClient;
+        private TwitterInfo _twitterInfo;
+        private TwitterClient _twitterClient;
         private ISampleStream _sampleStream;
+        private static ActorSystem TwitterStatisticsActorSystem;
+        private IActorRef _tweetCounterActorRef;
+        private IActorRef _tweetAverageActorRef;
+        private IActorRef _topEmojisUsedActorRef;
+        private IActorRef _percentOfTweetsContainingEmojisActorRef;
+        private IActorRef _topHashTagsActorRef;
+        private IActorRef _percentOfTweetsWithUrlActorRef;
+        private IActorRef _percentOfTweetsWithPhotoUrlActorRef;
+        private IActorRef _topDomainsActorRef;
+
+        public Driver()
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            InitializeDependencies();
+            InitializeTweetInvi();
+            InitializeActorSystemAnActors();
+        }
+
+        private void InitializeDependencies()
+        {
+            _twitterInfo = new TwitterInfo();
+            _httpClient = new HttpClient();
+        }
+
+        private void InitializeTweetInvi()
+        {
+            _twitterClient = new TwitterClient(_twitterInfo.Secrets.Key,
+                _twitterInfo.Secrets.SecretKey,
+                _twitterInfo.Secrets.AccessToken,
+                _twitterInfo.Secrets.AccessTokenSecret);
+        }
+
+        private void InitializeActorSystemAnActors()
+        {
+            TwitterStatisticsActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
+            System.Console.WriteLine("TwitterStatisticsActorSystem created");
+
+            // Init TotalNumberOfTweetsActor
+            var tweetCounterActorProps = Props.Create<TotalNumberOfTweetsActor>();
+            _tweetCounterActorRef =
+                TwitterStatisticsActorSystem.ActorOf(tweetCounterActorProps, "TweetCounterActor");
+
+            // Init TotalNumberOfTweetsActor
+            var tweetAverageActorProps = Props.Create<TweetAverageActor>();
+            _tweetAverageActorRef =
+                TwitterStatisticsActorSystem.ActorOf(tweetAverageActorProps, "TweetAverageActor");
+
+            // Init TotalNumberOfTweetsActor
+            var topEmojisUsedActorProps = Props.Create<TopEmojisUsedActor>();
+            _topEmojisUsedActorRef =
+                TwitterStatisticsActorSystem.ActorOf(topEmojisUsedActorProps, "TopEmojisUsedActor");
+
+            // Init TotalNumberOfTweetsActor
+            var percentOfTweetsContainingEmojisActorProps = Props.Create<PercentOfTweetsContainingEmojisActor>();
+            _percentOfTweetsContainingEmojisActorRef =
+                TwitterStatisticsActorSystem.ActorOf(percentOfTweetsContainingEmojisActorProps, "PercentOfTweetsContainingEmojisActor");
+
+            // Init TotalNumberOfTweetsActor
+            var topHashTagsActorProps = Props.Create<TopHashTagsActor>();
+            _topHashTagsActorRef =
+                TwitterStatisticsActorSystem.ActorOf(topHashTagsActorProps, "TopHashTagsActor");
+
+            // Init TotalNumberOfTweetsActor
+            var percentOfTweetsWithUrlActorProps = Props.Create<PercentOfTweetsWithUrlActor>();
+            _percentOfTweetsWithUrlActorRef =
+                TwitterStatisticsActorSystem.ActorOf(percentOfTweetsWithUrlActorProps, "PercentOfTweetsWithUrlActor");
+
+            // Init TotalNumberOfTweetsActor
+            var percentOfTweetsWithPhotoUrlActorProps = Props.Create<PercentOfTweetsWithPhotoUrlActor>();
+            _percentOfTweetsWithPhotoUrlActorRef =
+                TwitterStatisticsActorSystem.ActorOf(percentOfTweetsWithPhotoUrlActorProps, "PercentOfTweetsWithPhotoUrlActor");
+
+            // Init TotalNumberOfTweetsActor
+            var topDomainsActorProps = Props.Create<TopDomainsActor>();
+            _topDomainsActorRef =
+                TwitterStatisticsActorSystem.ActorOf(topDomainsActorProps, "TopDomainsActor");
+        }
+
         public static async Task Main(string[] args)
         {
-            //var jsonFilePath = @"C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.Console\bin\Debug\netcoreapp3.1\tweetsample.json";
             var driver = new Driver();
             try
             {
@@ -34,12 +106,10 @@ namespace JackIsBack.Console
                 var userClient = new TwitterClient(twitterInfo.Secrets.Key, twitterInfo.Secrets.SecretKey,
                     twitterInfo.Secrets.AccessToken, twitterInfo.Secrets.AccessTokenSecret);
 
-                var user = await userClient.Users.GetAuthenticatedUserAsync();
                 driver._sampleStream = userClient.Streams.CreateSampleStream();
-                driver._sampleStream.TweetReceived += sampleStreamOnTweetReceived();
+                driver._sampleStream.TweetReceived += SampleStreamOnTweetReceived();
 
                 await driver._sampleStream.StartAsync();
-                System.Console.WriteLine(user);
             }
             catch (Exception exception)
             {
@@ -47,187 +117,18 @@ namespace JackIsBack.Console
             }
             finally
             {
-                driver._sampleStream.TweetReceived -= sampleStreamOnTweetReceived();
+                driver._sampleStream.TweetReceived -= SampleStreamOnTweetReceived();
                 driver._sampleStream.TweetReceived -= null;
             }
-
-            //TwitterStreamingActorSystem = ActorSystemImpl.Create("TwitterStreamingActorSystem");
-            //System.Console.WriteLine("Actor system created");
-
-            //Props streamRetrieverActorProps = Props.Create<StreamRetrieverActor>();
-            //IActorRef streamingActorRef = TwitterStreamingActorSystem.ActorOf(streamRetrieverActorProps, "StreamRetrieverActor");
-
-            //ITweetRetriever tweetReciever = new FileTweetRetriever();
-            //var tweets = await tweetReciever.GetFileAsync(jsonFilePath);
-
-            //foreach (var root in tweets)
-            //{
-            //    streamingActorRef.Tell(new TwitterMessage(root));
-            //}
-
-            //var jsonFile = driver.ReadJsonFile(jsonFilePath);
-            //driver.WriteOutputToScreen(jsonFile);
-            //TwitterStreamingActorSystem.Terminate();
-
 
             System.Console.WriteLine("FINISHED!");
             System.Console.ReadLine();
         }
 
-        private static EventHandler<TweetReceivedEventArgs> sampleStreamOnTweetReceived()
+        private static EventHandler<TweetReceivedEventArgs> SampleStreamOnTweetReceived()
         {
-            long count = 0;
-            return (sender, eventArgs) =>
-            {
-                System.Console.WriteLine($"count: {count++}\t" +  eventArgs.Tweet);
-            };
-        }
-
-        private async Task ProcessRepositories()
-        {
-            //_client.BaseAddress = new Uri(_twitterInfo.ApiLinks.Stream);
-            //_client.DefaultRequestHeaders.Accept.Clear();
-
-            //_client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",  _twitterInfo.Secrets.BearerToken);
-
-            //var stringTask = await _client.GetStringAsync(_twitterInfo.ApiLinks.Stream);
-            //var streamTask = _client.GetStreamAsync(_twitterInfo.ApiLinks.Stream);
-
-            //await foreach (var x in stringTask)
-            //{
-            //}
-
-            //var msg = GetStreamData();
-
-            //await foreach (var s in msg)
-            //{
-            //    System.Console.WriteLine(s);
-            //}
-
-            //System.Console.WriteLine(msg);
-
-
-
-
-            System.Console.ReadLine();
-        }
-
-
-        //public void WriteOutputToScreen(string jsonString)
-        //{
-        //    try
-        //    {
-        //        var modelJson = DeserializeTweet(jsonString);
-
-        //        System.Console.WriteLine(modelJson);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        System.Console.WriteLine(ex.Message);
-        //    }
-        //}
-        public async IAsyncEnumerable<string> GetStreamData()
-        {
-            _client.BaseAddress = new Uri(_twitterInfo.ApiLinks.Stream);
-            _client.DefaultRequestHeaders.Accept.Clear();
-
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _twitterInfo.Secrets.BearerToken);
-
-            var count = 0;
-            var r = new Random();
-            while (true)
-            {
-                System.Console.WriteLine(count++);
-                var streamString = await _client.GetStringAsync(_twitterInfo.ApiLinks.Stream).ConfigureAwait(false); 
-                System.Console.WriteLine(streamString);
-                yield break;
-            }
-        }
-
-
-        public void Dispose()
-        {
-            
-        }
-    }
-
-
-    public interface ITweetRetriever
-    {
-        Task<List<Root>> GetTweetsAsync(string resource);
-        Task<string[]> GetFileAsync(string resource);
-    }
-
-    public class FileTweetRetriever : ITweetRetriever
-    {
-        public async Task<List<Root>> GetTweetsAsync(string resource)
-        {
-            var result = await Task.Factory.StartNew(() =>
-                                    {
-                                        var jsonFile = ReadJsonFile(resource);
-                                        var tweet = DeserializeTweet(jsonFile);
-                                        return tweet;
-                                    });
-            return result;
-        }
-
-        public async Task<string[]> GetFileAsync(string resource)
-        {
-            var result = await Task.Factory.StartNew(() =>
-            {
-                var jsonFile = ReadJsonFile(resource);
-                var file = DeserializeFile(jsonFile);
-                return file;
-            });
-            return result;
-        }
-
-        private static string ReadJsonFile(string jsonFilePath)
-        {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
-            };
-
-            var file = File.ReadAllText(jsonFilePath, Encoding.Unicode);
-            var json = file.Split("}\r\n}{", StringSplitOptions.None);
-
-
-            //MemoryMappedFile mmf = MemoryMappedFile.CreateFromFile(file);
-            //MemoryMappedViewStream mms = mmf.CreateViewStream();
-            //using (BinaryReader b = new BinaryReader(mms))
-            //{
-            //}
-
-            //
-            return file;
-        }
-
-        private static List<Root> DeserializeTweet(string jsonString)
-        {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
-            };
-
-            var jsonModel = JsonSerializer.Deserialize<List<Root>>(jsonString, options);
-
-            return jsonModel;
-        }
-
-        private static string[] DeserializeFile(string jsonString)
-        {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
-            };
-
-            var jsonModel = JsonSerializer.Deserialize<string[]>(jsonString, options);
-
-            return jsonModel;
+            //tell the Actor responsible for counting Tweets.
+            return null;
         }
     }
 }
