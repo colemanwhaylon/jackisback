@@ -3,8 +3,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Akka.Actor;
 using JackIsBack.Console.Actors;
+using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using Tweetinvi;
+using Tweetinvi.Core.DTO;
 using Tweetinvi.Events;
+using Tweetinvi.Models;
 using Tweetinvi.Streaming;
 
 namespace JackIsBack.Console
@@ -14,9 +18,11 @@ namespace JackIsBack.Console
         private HttpClient _httpClient;
         private TwitterInfo _twitterInfo;
         private TwitterClient _twitterClient;
+        private static Driver _driver;
+
         private ISampleStream _sampleStream;
         private static ActorSystem TwitterStatisticsActorSystem;
-        private IActorRef _tweetCounterActorRef;
+        private IActorRef _totalNumberOfTweetsActorRef;
         private IActorRef _tweetAverageActorRef;
         private IActorRef _topEmojisUsedActorRef;
         private IActorRef _percentOfTweetsContainingEmojisActorRef;
@@ -24,6 +30,11 @@ namespace JackIsBack.Console
         private IActorRef _percentOfTweetsWithUrlActorRef;
         private IActorRef _percentOfTweetsWithPhotoUrlActorRef;
         private IActorRef _topDomainsActorRef;
+
+        static Driver()
+        {
+            _driver = new Driver();
+        }
 
         public Driver()
         {
@@ -57,9 +68,9 @@ namespace JackIsBack.Console
             System.Console.WriteLine("TwitterStatisticsActorSystem created");
 
             // Init TotalNumberOfTweetsActor
-            var tweetCounterActorProps = Props.Create<TotalNumberOfTweetsActor>();
-            _tweetCounterActorRef =
-                TwitterStatisticsActorSystem.ActorOf(tweetCounterActorProps, "TweetCounterActor");
+            var totalNumberOfTweetsActorProps = Props.Create<TotalNumberOfTweetsActor>();
+            _totalNumberOfTweetsActorRef =
+                TwitterStatisticsActorSystem.ActorOf(totalNumberOfTweetsActorProps, "TotalNumberOfTweetsActor");
 
             // Init TotalNumberOfTweetsActor
             var tweetAverageActorProps = Props.Create<TweetAverageActor>();
@@ -99,17 +110,16 @@ namespace JackIsBack.Console
 
         public static async Task Main(string[] args)
         {
-            var driver = new Driver();
             try
             {
                 var twitterInfo = new TwitterInfo();
                 var userClient = new TwitterClient(twitterInfo.Secrets.Key, twitterInfo.Secrets.SecretKey,
                     twitterInfo.Secrets.AccessToken, twitterInfo.Secrets.AccessTokenSecret);
 
-                driver._sampleStream = userClient.Streams.CreateSampleStream();
-                driver._sampleStream.TweetReceived += SampleStreamOnTweetReceived();
+                _driver._sampleStream = userClient.Streams.CreateSampleStream();
+                _driver._sampleStream.TweetReceived += SampleStreamOnTweetReceived;
 
-                await driver._sampleStream.StartAsync();
+                await _driver._sampleStream.StartAsync();
             }
             catch (Exception exception)
             {
@@ -117,18 +127,21 @@ namespace JackIsBack.Console
             }
             finally
             {
-                driver._sampleStream.TweetReceived -= SampleStreamOnTweetReceived();
-                driver._sampleStream.TweetReceived -= null;
+                _driver._sampleStream.TweetReceived -= SampleStreamOnTweetReceived;
+                _driver._sampleStream.TweetReceived -= null;
+
+                _driver._sampleStream.Stop();
+                await TwitterStatisticsActorSystem.Terminate();
             }
 
             System.Console.WriteLine("FINISHED!");
             System.Console.ReadLine();
         }
 
-        private static EventHandler<TweetReceivedEventArgs> SampleStreamOnTweetReceived()
+        private static void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
-            //tell the Actor responsible for counting Tweets.
-            return null;
+            _driver._totalNumberOfTweetsActorRef.Tell($"{e.Tweet.Text }");
         }
+
     }
 }

@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using JackIsBack;
+﻿using Tweetinvi.Models;
 
 namespace JackIsBack.Console.Messages
 {
     public class TwitterMessage
     {
-        public Root Tweet { get; private set; }
 
-        public TwitterMessage(Root tweet)
+        public ITweet Tweet { get; private set; }
+
+        public TwitterMessage(ITweet tweet)
         {
             Tweet = tweet;
         }

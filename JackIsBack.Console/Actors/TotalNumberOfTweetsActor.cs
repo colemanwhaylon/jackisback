@@ -1,5 +1,4 @@
 ﻿using Akka.Actor;
-using Tweetinvi.Models;
 
 namespace JackIsBack.Console.Actors
 {
@@ -8,13 +7,13 @@ namespace JackIsBack.Console.Actors
         public static long Count { get; set; } = 0;
         public TotalNumberOfTweetsActor()
         {
-            System.Console.WriteLine("Creating a TweetCounterActor");
-            Receive<ITweet>(HandleTwitterMessage);
+            System.Console.WriteLine("Creating a TotalNumberOfTweetsActor");
+            Receive<string>(HandleTwitterMessage);
         }
 
-        private void HandleTwitterMessage(ITweet message)
+        private void HandleTwitterMessage(string tweet)
         {
-            System.Console.WriteLine($"count: {Count++}\t" + message.Text);
+            System.Console.WriteLine($"count: {Count++}\t" + tweet);
         }
     }
 }
