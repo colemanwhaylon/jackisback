@@ -114,13 +114,13 @@ namespace JackIsBack.Common
             //TweetReceived?.Invoke(this, e);
 
             _totalNumberOfTweetsActorRef.Tell(e.Tweet);
-            //_tweetAverageActorRef.Tell(e.Tweet);
-            //_topEmojisUsedActorRef.Tell(e.Tweet);
-            //_percentOfTweetsContainingEmojisActorRef.Tell(e.Tweet);
-            //_topHashTagsActorRef.Tell(e.Tweet);
-            //_percentOfTweetsWithUrlActorRef.Tell(e.Tweet);
-            //_percentOfTweetsWithPhotoUrlActorRef.Tell(e.Tweet);
-            //_topDomainsActorRef.Tell(e.Tweet);
+            _tweetAverageActorRef.Tell(e.Tweet);
+            _topEmojisUsedActorRef.Tell(e.Tweet);
+            _percentOfTweetsContainingEmojisActorRef.Tell(e.Tweet);
+            _topHashTagsActorRef.Tell(e.Tweet);
+            _percentOfTweetsWithUrlActorRef.Tell(e.Tweet);
+            _percentOfTweetsWithPhotoUrlActorRef.Tell(e.Tweet);
+            _topDomainsActorRef.Tell(e.Tweet);
         }
 
         //The event-invoking method that derived classes can override.
