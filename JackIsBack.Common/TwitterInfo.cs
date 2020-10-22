@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Configuration;
-using System.IO;
+﻿using System.IO;
 using Microsoft.Extensions.Configuration;
 
-namespace JackIsBack.Console
+namespace JackIsBack.Common
 {
-    public class TwitterInfo
+    public class TwitterInfo : ITwitterInfo
     {
         public TwitterSecrets Secrets { get; set; }
         public TwitterApiLinks ApiLinks { get; set; }

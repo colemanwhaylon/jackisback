@@ -10,3 +10,5 @@
 /JackIsBack.Console/obj
 /JackIsBack.Console/bin/Debug/netcoreapp3.1
 /JackIsBack/.vs/JackIsBack/config
+/JackIsBack.Common/obj
+/JackIsBack.Common/bin/Debug/netstandard2.0

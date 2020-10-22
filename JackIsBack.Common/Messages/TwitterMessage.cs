@@ -1,6 +1,6 @@
 ﻿using Tweetinvi.Models;
 
-namespace JackIsBack.Console.Messages
+namespace JackIsBack.Common.Messages
 {
     public class TwitterMessage
     {
