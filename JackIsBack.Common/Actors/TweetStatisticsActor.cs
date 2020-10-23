@@ -13,7 +13,9 @@ namespace JackIsBack.Common.Actors
 
         private void HandleIncreaseTweetCountCommand(ChangeTweetQuantityCommand command)
         {
+            //System.Console.WriteLine($"Path: {this.Self}\tThe Count before command.Execute() is: {TweetStatistics.Count} ");
             command.Execute();
+            System.Console.WriteLine($"Path: {this.Self}\tThe Count after command.Execute() is now: {TweetStatistics.Count} " );
         }
     }
 

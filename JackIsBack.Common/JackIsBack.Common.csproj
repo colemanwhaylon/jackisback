@@ -7,12 +7,13 @@
 
   <ItemGroup>
     <PackageReference Include="Akka" Version="1.4.10" />
+    <PackageReference Include="Akka.Cluster" Version="1.4.10" />
     <PackageReference Include="Akka.DI.AutoFac" Version="1.4.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
-    <PackageReference Include="TweetinviAPI" Version="5.0.1" />
+    <PackageReference Include="TweetinviAPI" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup>

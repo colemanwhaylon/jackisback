@@ -6,7 +6,6 @@ namespace JackIsBack.Common.Commands
 {
     public class ChangeTweetQuantityCommand : ICommand
     {
-
         private readonly Operation _operation;
         private readonly int _amount;
 

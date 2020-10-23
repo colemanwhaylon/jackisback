@@ -14,17 +14,11 @@ namespace JackIsBack.Common.Actors
             Receive<ITweet>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(ITweet tweet)
+        private void HandleTwitterMessageAsync(ITweet tweet)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
-                var commandManager = new CommandManager();
-                commandManager.Invoke(command);
+            var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
 
-                
-                System.Console.WriteLine($"The new Count is: {TweetStatistics.Count} " + tweet.Text);
-            });
+            Context.ActorSelection("akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor").Tell(command);
         }
     }
 }
