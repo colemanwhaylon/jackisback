@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace JackIsBack.Common.Commands
+namespace JackIsBack.Common.Interfaces
 {
     public enum Operation
     {

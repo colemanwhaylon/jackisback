@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JackIsBack.Common.Interfaces;
 
 namespace JackIsBack.Common.Commands
 {

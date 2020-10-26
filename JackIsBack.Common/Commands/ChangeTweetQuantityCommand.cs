@@ -1,6 +1,5 @@
 ﻿using System;
-using JackIsBack.Common.Actors;
-using Tweetinvi.Models;
+using JackIsBack.Common.Interfaces;
 
 namespace JackIsBack.Common.Commands
 {
@@ -36,6 +35,11 @@ namespace JackIsBack.Common.Commands
         public void Undo()
         {
             throw new NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            return $"Operation: {this._operation}, Amount: {this._amount}";
         }
     }
 }

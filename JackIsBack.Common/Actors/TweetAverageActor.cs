@@ -1,16 +1,19 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Event;
 using Tweetinvi.Models;
 
 namespace JackIsBack.Common.Actors
 {
     public class TweetAverageActor : ReceiveActor
     {
+        private ILoggingAdapter _logger = Context.GetLogger();
         private static long Count { get; set; } = 0;
         public TweetAverageActor()
         {
             System.Console.WriteLine("TweetAverageActor created.");
+            _logger.Warning("TweetAverageActor created.");
             Receive<ITweet>(HandleTwitterMessageAsync);
         }
 
@@ -22,8 +25,9 @@ namespace JackIsBack.Common.Actors
                 //var commandManager = new CommandManager();
                 //commandManager.Invoke(command);
 
-                System.Console.WriteLine($"TweetAverageActor wrote " + tweet.Text);
+               // System.Console.WriteLine($"TweetAverageActor wrote " + tweet.Text);
+                _logger.Warning($"TweetAverageActor wrote " + tweet.IdStr);
             });
         }
-    }
+    }   
 }
