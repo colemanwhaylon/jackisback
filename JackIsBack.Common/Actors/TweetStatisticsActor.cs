@@ -1,4 +1,5 @@
-﻿using Akka.Actor;
+﻿using System;
+using Akka.Actor;
 using Akka.Event;
 using JackIsBack.Common.Commands;
 
@@ -12,14 +13,17 @@ namespace JackIsBack.Common.Actors
             System.Console.WriteLine("TweetStatisticsActor created.");
             _logger.Info("TweetStatisticsActor created.");
             Receive<ChangeTweetQuantityCommand>(HandleIncreaseTweetCountCommand);
+            Receive<UpdateTweetAverageCommand>(HandleTweetAverageCommand);
+        }
+
+        private void HandleTweetAverageCommand(UpdateTweetAverageCommand command)
+        {
+            command.Execute();
         }
 
         private void HandleIncreaseTweetCountCommand(ChangeTweetQuantityCommand command)
         {
-            //System.Console.WriteLine($"Path: {this.Self}\tThe Count before command.Execute() is: {TweetStatistics.Count} ");
             command.Execute();
-            _logger.Info($"Path: {this.Self}\tThe Count after command.Execute() is now: {TweetStatistics.Count} ");
-
         }
     }
 

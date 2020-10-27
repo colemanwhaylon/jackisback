@@ -19,17 +19,17 @@ namespace JackIsBack.Common.Commands
             switch (_operation)
             {
                 case Operation.Increase:
-                    TweetStatistics.Count += _amount;
+                    TweetStatistics.TotalTweetCount += _amount;
                     break;
                 case Operation.Decrease:
-                    TweetStatistics.Count-= _amount;
+                    TweetStatistics.TotalTweetCount-= _amount;
                     break;
             }
         }
 
         public bool CanExecute()
         {
-            return TweetStatistics.Count >= 0;
+            return TweetStatistics.TotalTweetCount >= 0;
         }
 
         public void Undo()

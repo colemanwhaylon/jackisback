@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Event;
 using JackIsBack.Common.Commands;
+using JackIsBack.Common.DTO;
 using JackIsBack.Common.Interfaces;
 using Tweetinvi.Models;
 
@@ -14,10 +15,10 @@ namespace JackIsBack.Common.Actors
         {
             System.Console.WriteLine("TotalNumberOfTweetsActor created.");
             _logger.Info("TotalNumberOfTweetsActor created.");
-            Receive<ITweet>(HandleTwitterMessageAsync);
+            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private void HandleTwitterMessageAsync(ITweet tweet)
+        private void HandleTwitterMessageAsync(IMyTweetDTO tweet)
         {
             var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
             _logger.Info($"Command: {command.ToString()}");

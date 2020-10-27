@@ -13,8 +13,6 @@ namespace JackIsBack.Console
     {
         public static async Task Main(string[] args)
         {
-
-
             TweetGenerator tweetGenerator = new TweetGenerator(); 
             try
             {

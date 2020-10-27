@@ -1,33 +1,31 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Event;
-using Tweetinvi.Models;
+using JackIsBack.Common.Commands;
+using JackIsBack.Common.DTO;
 
 namespace JackIsBack.Common.Actors
 {
     public class TweetAverageActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private static long Count { get; set; } = 0;
+
         public TweetAverageActor()
         {
             System.Console.WriteLine("TweetAverageActor created.");
             _logger.Warning("TweetAverageActor created.");
-            Receive<ITweet>(HandleTwitterMessageAsync);
+            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(ITweet tweet)
+        private async void HandleTwitterMessageAsync(IMyTweetDTO myTweetDto)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                //var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
-                //var commandManager = new CommandManager();
-                //commandManager.Invoke(command);
+            var command = new UpdateTweetAverageCommand(1);
+            _logger.Info($"Command: {command.ToString()}");
+            Context.ActorSelection("akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor").Tell(command);
 
-               // System.Console.WriteLine($"TweetAverageActor wrote " + tweet.Text);
-                _logger.Warning($"TweetAverageActor wrote " + tweet.IdStr);
-            });
+
+            _logger.Info($"TweetAverageActor wrote \tTweetStatistics.AverageTweetsPerHour: {TweetStatistics.AverageTweetsPerHour}\n" +
+                $"\tTweetStatistics.AverageTweetsPerMinute: {TweetStatistics.AverageTweetsPerMinute}\n" +
+                $"\tTweetStatistics.AverageTweetsPerSecond: {TweetStatistics.AverageTweetsPerSecond}");
         }
-    }   
+    }
 }
