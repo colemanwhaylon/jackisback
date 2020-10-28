@@ -172,7 +172,7 @@ namespace JackIsBack.Common
                     Minute = TweetStatistics.StartDateTime.Minutes,
                     Second = TweetStatistics.StartDateTime.Seconds,
                     MilliSecond = TweetStatistics.StartDateTime.Milliseconds,
-                    TweetCountPerHour = 0
+                    TotalTweetCountPerHour = 0
                 };
 
                 System.Console.WriteLine($"[After Loop] i={i}, hourIncrement={hourIncrement}");

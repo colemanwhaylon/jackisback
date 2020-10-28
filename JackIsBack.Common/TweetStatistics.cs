@@ -12,8 +12,12 @@ namespace JackIsBack.Common.Commands
         public static long AverageTweetsPerHour { get; set; } = 0;
         public static long AverageTweetsPerMinute { get; set; } = 0;
         public static long AverageTweetsPerSecond { get; set; } = 0;
-
     }
+
+    /// <summary>
+    /// Updated TweetInstancePerHour to reflect a structure that
+    /// can be used to track tweet count over a 24 hour period.
+    /// </summary>
 
     public struct TweetInstancePerHour
     {
@@ -21,6 +25,9 @@ namespace JackIsBack.Common.Commands
         public int Minute { get; set; }
         public int Second { get; set; }
         public int MilliSecond { get; set; }
-        public long TweetCountPerHour { get; set; }
+        public long TotalTweetCountPerHour { get; set; }
+        public long AverageTweetsPerHour { get; set; }
+        public long AverageTweetsPerMinute { get; set; } 
+        public long AverageTweetsPerSecond { get; set; } 
     }
 }
