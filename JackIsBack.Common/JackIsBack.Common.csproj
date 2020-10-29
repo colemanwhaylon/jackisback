@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -9,6 +9,8 @@
     <PackageReference Include="Akka" Version="1.4.10" />
     <PackageReference Include="Akka.Cluster" Version="1.4.10" />
     <PackageReference Include="Akka.DI.AutoFac" Version="1.4.1" />
+    <PackageReference Include="Akka.Remote" Version="1.4.10" />
+    <PackageReference Include="Akka.Serialization.Hyperion" Version="1.4.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
@@ -32,9 +34,5 @@
     <None Update="tweetsample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DTO\" />
   </ItemGroup>
 </Project>

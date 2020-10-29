@@ -11,6 +11,7 @@ using JackIsBack.Common.Actors;
 using JackIsBack.Common.Commands;
 using JackIsBack.Common.DTO;
 using JackIsBack.Common.Interfaces;
+using Newtonsoft.Json;
 using Serilog;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
@@ -78,7 +79,7 @@ namespace JackIsBack.Common
             builder.RegisterType<TopDomainsActor>();
             builder.RegisterType<TweetStatisticsActor>();
             builder.RegisterType<TweetDTO>();
-            builder.RegisterType<MyTweetDTO>().As<IMyTweetDTO>();
+            //builder.RegisterType<MyTweetDTO>().As<IMyTweetDTO>();
             ///* Mapping types:
 
             var config = new MapperConfiguration(cfg =>
@@ -145,10 +146,22 @@ namespace JackIsBack.Common
         {
             TweetStatistics.StartDateTime = new TimeSpan(DateTime.Now.Ticks);
 
-            InitializeHourlyTweetCountDict();
+            TestSerialization();
+
             InitializeTweetStatisticsAverageCounters();
             InitializeDIContainer();
             InitializeActorSystemAnActors();
+        }
+
+        private void TestSerialization()
+        {
+            MyTweetDTO x = new MyTweetDTO();
+            x.Tweet = "Hello";
+
+            var serializedText = JsonConvert.SerializeObject(x);
+
+            var obj = JsonConvert.DeserializeObject<MyTweetDTO>(serializedText);
+
         }
 
         private void InitializeTweetStatisticsAverageCounters()
@@ -158,44 +171,21 @@ namespace JackIsBack.Common
             TweetStatistics.AverageTweetsPerSecond = 0;
         }
 
-        private void InitializeHourlyTweetCountDict()
-        {
-            TweetStatistics.HourlyTweetCountDict = new System.Collections.Generic.Dictionary<int, TweetInstancePerHour>();
-            var hourIncrement = TweetStatistics.StartDateTime.Hours;
-            for (var i = 0; i < 24; i++)
-            {
-                System.Console.WriteLine($"[Before Loop] i={i}, hourIncrement={hourIncrement}");
-
-                var tiph = new TweetInstancePerHour
-                {
-                    Hour = hourIncrement >= 23 ? hourIncrement = 0 : ++hourIncrement,
-                    Minute = TweetStatistics.StartDateTime.Minutes,
-                    Second = TweetStatistics.StartDateTime.Seconds,
-                    MilliSecond = TweetStatistics.StartDateTime.Milliseconds,
-                    TotalTweetCountPerHour = 0
-                };
-
-                System.Console.WriteLine($"[After Loop] i={i}, hourIncrement={hourIncrement}");
-
-                TweetStatistics.HourlyTweetCountDict.Add(i, tiph);
-            }
-        }
-
         public void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
-            IMyTweetDTO myTweetDTO = null;
+            MyTweetDTO myTweetDTO = null;
             try
             {
                 var mapper = _container.Resolve<IMapper>();
-                TweetDTO tweetDto = mapper.Map<TweetDTO>(e.Tweet);
+                TweetDTO tweetDto = mapper.Map<TweetDTO>(e.Tweet.TweetDTO);
                 myTweetDTO = new MyTweetDTO
                 {
-                    Tweet = tweetDto
+                    Tweet = tweetDto.Text
                 };
             }
             catch (Exception ex)
             {
-
+                Serilog.Log.Logger.Debug($"ex.Message: {ex.Message}, ex.StackTrace: {ex.StackTrace}");
             }
 
             _totalNumberOfTweetsActorRef.Tell(myTweetDTO);

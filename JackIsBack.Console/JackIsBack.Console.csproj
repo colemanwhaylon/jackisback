@@ -11,8 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JackIsBack.Common\JackIsBack.Common.csproj" />
-    <ProjectReference Include="..\JackIsBack\JackIsBack.csproj" />
+    <ProjectReference Include="..\JackIsBack.NetCoreLibrary\JackIsBack.NetCoreLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>

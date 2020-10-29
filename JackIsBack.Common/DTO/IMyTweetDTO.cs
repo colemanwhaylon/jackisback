@@ -4,6 +4,6 @@ namespace JackIsBack.Common.DTO
 {
     public interface IMyTweetDTO
     {
-        TweetDTO Tweet { get; set; }
+        string Tweet { get; set; }
     }
 }

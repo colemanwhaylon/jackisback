@@ -1,6 +1,6 @@
-﻿using System;
+﻿using JackIsBack.NetCoreLibrary;
+using System;
 using System.Threading.Tasks;
-using JackIsBack.Common;
 using Tweetinvi.Events;
 
 namespace JackIsBack.Console
@@ -13,11 +13,11 @@ namespace JackIsBack.Console
     {
         public static async Task Main(string[] args)
         {
-            TweetGenerator tweetGenerator = new TweetGenerator(); 
+            TweetGenerator tweetGenerator = new TweetGenerator();
             try
             {
                 await tweetGenerator.Run();
-
+                System.Console.Title = "Twitter Statistics App";
                 System.Console.WriteLine("Started Main()!");
                 System.Console.ReadLine();
             }

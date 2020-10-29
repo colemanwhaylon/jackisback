@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Akka.Actor;
 using JackIsBack.Common.Commands;
+using JackIsBack.Common.DTO;
 using Tweetinvi.Models;
 
 namespace JackIsBack.Common.Actors
@@ -11,10 +12,10 @@ namespace JackIsBack.Common.Actors
         public PercentOfTweetsContainingEmojisActor()
         {
             System.Console.WriteLine("PercentOfTweetsContainingEmojisActor created.");
-            Receive<ITweet>(HandleTwitterMessageAsync);
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(ITweet tweet)
+        private async void HandleTwitterMessageAsync(MyTweetDTO tweet)
         {
             await Task.Factory.StartNew(() =>
             {
@@ -22,7 +23,7 @@ namespace JackIsBack.Common.Actors
                 //var commandManager = new CommandManager();
                 //commandManager.Invoke(command);
 
-                System.Console.WriteLine($"PercentOfTweetsContainingEmojisActor wrote " + tweet.Text);
+                System.Console.WriteLine($"PercentOfTweetsContainingEmojisActor wrote " + tweet);
             });
         }
     }

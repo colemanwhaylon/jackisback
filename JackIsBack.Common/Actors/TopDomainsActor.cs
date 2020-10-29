@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Akka.Actor;
+using JackIsBack.Common.DTO;
 using Tweetinvi.Models;
 
 namespace JackIsBack.Common.Actors
@@ -10,10 +11,10 @@ namespace JackIsBack.Common.Actors
         public TopDomainsActor()
         {
             System.Console.WriteLine("TopDomainsActor created.");
-            Receive<ITweet>(HandleTwitterMessageAsync);
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(ITweet tweet)
+        private async void HandleTwitterMessageAsync(MyTweetDTO tweet)
         {
             await Task.Factory.StartNew(() =>
             {
@@ -21,7 +22,7 @@ namespace JackIsBack.Common.Actors
                 //var commandManager = new CommandManager();
                 //commandManager.Invoke(command);
 
-                System.Console.WriteLine($"TopDomainsActor wrote " + tweet.Text);
+                System.Console.WriteLine($"TopDomainsActor wrote " + tweet);
             });
         }
     }

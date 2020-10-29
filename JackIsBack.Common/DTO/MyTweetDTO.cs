@@ -1,9 +1,7 @@
-﻿using Tweetinvi.Core.DTO;
-
-namespace JackIsBack.Common.DTO
+﻿namespace JackIsBack.Common.DTO
 {
-    public class MyTweetDTO : IMyTweetDTO
+    public class MyTweetDTO
     {
-        public TweetDTO Tweet { get; set; }
+        public string Tweet { get; set; }
     }
 }

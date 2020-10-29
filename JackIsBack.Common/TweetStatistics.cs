@@ -8,11 +8,13 @@ namespace JackIsBack.Common.Commands
         public static TimeSpan StartDateTime { get; set; }
         public static TimeSpan EndDateTime { get; set; }
         public static long TotalTweetCount = 0;
-        public static Dictionary<int, TweetInstancePerHour> HourlyTweetCountDict { get; set; }
         public static long AverageTweetsPerHour { get; set; } = 0;
         public static long AverageTweetsPerMinute { get; set; } = 0;
         public static long AverageTweetsPerSecond { get; set; } = 0;
     }
+
+    //docker run --name twitter1 --hostname twitter1 -p 4053:4053 -p 9110:9110 --env ACTORSYSTEM=TwitterStatisticsActorSystem --env CLUSTER_IP=twitter1 --env CLUSTER_PORT=4053 --env CLUSTER_SEEDS="akka.tcp://TwitterStatisticsActorSystem@twitter1:4053" petabridge/lighthouse:latest
+
 
     /// <summary>
     /// Updated TweetInstancePerHour to reflect a structure that

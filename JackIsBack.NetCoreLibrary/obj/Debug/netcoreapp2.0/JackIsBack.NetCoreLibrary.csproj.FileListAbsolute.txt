@@ -1,0 +1,12 @@
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\bin\Debug\netcoreapp2.0\appSettings.json
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\bin\Debug\netcoreapp2.0\output.json
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\bin\Debug\netcoreapp2.0\tweetsample.json
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\bin\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.deps.json
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\bin\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.dll
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\bin\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.pdb
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\obj\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.csprojAssemblyReference.cache
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\obj\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.AssemblyInfoInputs.cache
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\obj\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.AssemblyInfo.cs
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\obj\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.csproj.CoreCompileInputs.cache
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\obj\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.dll
+C:\Users\Owner\source\repos\colemanwhaylon\jackisback\JackIsBack.NetCoreLibrary\obj\Debug\netcoreapp2.0\JackIsBack.NetCoreLibrary.pdb

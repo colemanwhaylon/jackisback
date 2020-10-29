@@ -15,10 +15,10 @@ namespace JackIsBack.Common.Actors
         {
             System.Console.WriteLine("TotalNumberOfTweetsActor created.");
             _logger.Info("TotalNumberOfTweetsActor created.");
-            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private void HandleTwitterMessageAsync(IMyTweetDTO tweet)
+        private void HandleTwitterMessageAsync(MyTweetDTO tweet)
         {
             var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
             _logger.Info($"Command: {command.ToString()}");

@@ -13,10 +13,10 @@ namespace JackIsBack.Common.Actors
         {
             System.Console.WriteLine("TweetAverageActor created.");
             _logger.Warning("TweetAverageActor created.");
-            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(IMyTweetDTO myTweetDto)
+        private async void HandleTwitterMessageAsync(MyTweetDTO myTweetDto)
         {
             var command = new UpdateTweetAverageCommand(1);
             _logger.Info($"Command: {command.ToString()}");
