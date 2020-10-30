@@ -12,6 +12,15 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _logger.Debug("TweetStatisticsActor created.");
             Receive<ChangeTweetQuantityCommand>(HandleIncreaseTweetCountCommand);
             Receive<UpdateTweetAverageCommand>(HandleTweetAverageCommand);
+            Receive<UpdateHashTagsCommand>(HandleUpdateHashTagsCommand);
+        }
+
+        private void HandleUpdateHashTagsCommand(UpdateHashTagsCommand command)
+        {
+            command.Execute();
+
+            _logger.Debug($"Command: {command.ToString()}\n");
+            _logger.Debug($"TweetStatistics.HashTags key count: {TweetStatistics.HashTags.Keys.Count}");
         }
 
         private void HandleTweetAverageCommand(UpdateTweetAverageCommand command)

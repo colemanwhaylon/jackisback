@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace JackIsBack.NetCoreLibrary
 {
@@ -10,5 +11,6 @@ namespace JackIsBack.NetCoreLibrary
         public static long AverageTweetsPerHour { get; set; } = 0;
         public static long AverageTweetsPerMinute { get; set; } = 0;
         public static long AverageTweetsPerSecond { get; set; } = 0;
+        public static Dictionary<string, long> HashTags { get; set; }
     }
 }

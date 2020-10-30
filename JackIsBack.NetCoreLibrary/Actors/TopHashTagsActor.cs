@@ -14,7 +14,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             Receive<MyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(MyTweetDTO tweet)
+        private void HandleTwitterMessageAsync(MyTweetDTO tweet)
         {
             var command = new UpdateHashTagsCommand(tweet);
             Context.ActorSelection("akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor").Tell(command);

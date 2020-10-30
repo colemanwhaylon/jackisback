@@ -7,7 +7,6 @@ namespace JackIsBack.NetCoreLibrary.Commands
     {
         private readonly Operation _operation;
         private readonly int _amount;
-
         public ChangeTweetQuantityCommand(Operation operation, int amount)
         {
             _operation = operation;

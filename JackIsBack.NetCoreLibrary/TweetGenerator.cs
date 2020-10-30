@@ -11,6 +11,7 @@ using JackIsBack.NetCoreLibrary.Interfaces;
 using Newtonsoft.Json;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
@@ -156,9 +157,11 @@ namespace JackIsBack.NetCoreLibrary
 
         private void InitializeTweetStatisticsAverageCounters()
         {
+            TweetStatistics.TotalTweetCount = 0;
             TweetStatistics.AverageTweetsPerHour = 0;
             TweetStatistics.AverageTweetsPerMinute = 0;
             TweetStatistics.AverageTweetsPerSecond = 0;
+            TweetStatistics.HashTags = new Dictionary<string, long>();
         }
 
         public void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
@@ -179,7 +182,7 @@ namespace JackIsBack.NetCoreLibrary
             _tweetAverageActorRef.Tell(myTweetDTO);
             //_topEmojisUsedActorRef.Tell(myTweetDTO);
             //_percentOfTweetsContainingEmojisActorRef.Tell(myTweetDTO);
-            //_topHashTagsActorRef.Tell(myTweetDTO);
+            _topHashTagsActorRef.Tell(myTweetDTO);
             //_percentOfTweetsWithUrlActorRef.Tell(myTweetDTO);
             //_percentOfTweetsWithPhotoUrlActorRef.Tell(myTweetDTO;
             //_topDomainsActorRef.Tell(myTweetDTO);
