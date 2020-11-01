@@ -11,7 +11,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
         public MainActor()
         {
             _logger.Debug("MainActor created.");
-            Receive<string>(HandleTwitterMessageAsync);
+            //Receive<string>(HandleTwitterMessageAsync);
         }
 
         private void HandleTwitterMessageAsync(string tweet)

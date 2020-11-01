@@ -64,6 +64,8 @@ namespace JackIsBack.NetCoreLibrary
             builder.RegisterInstance(twitterClient).As<TwitterClient>();
 
             _actorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
+
+
             Serilog.Log.Logger.Information("TwitterStatisticsActorSystem created");
 
             builder.RegisterType<TweetGenerator>()
