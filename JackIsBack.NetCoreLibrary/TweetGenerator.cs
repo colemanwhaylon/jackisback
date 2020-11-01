@@ -8,10 +8,10 @@ using AutoMapper;
 using JackIsBack.NetCoreLibrary.Actors;
 using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
-using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
@@ -28,6 +28,7 @@ namespace JackIsBack.NetCoreLibrary
         private ISampleStream _sampleStream;
         private static IContainer _container;
         private static IDependencyResolver _resolver;
+        private static IActorRef _mainActorRef;
         private static IActorRef _totalNumberOfTweetsActorRef;
         private static IActorRef _tweetAverageActorRef;
         private static IActorRef _topEmojisUsedActorRef;
@@ -37,7 +38,6 @@ namespace JackIsBack.NetCoreLibrary
         private static IActorRef _percentOfTweetsWithPhotoUrlActorRef;
         private static IActorRef _topDomainsActorRef;
         private static IActorRef _tweetStatisticsActorRef;
-        public event EventHandler<TweetReceivedEventArgs> TweetReceived;
 
         private void InitializeDIContainer()
         {
@@ -79,6 +79,7 @@ namespace JackIsBack.NetCoreLibrary
             builder.RegisterType<TopDomainsActor>();
             builder.RegisterType<TweetStatisticsActor>();
             builder.RegisterType<TweetDTO>();
+
             //builder.RegisterType<MyTweetDTO>().As<IMyTweetDTO>();
             ///* Mapping types:
 
@@ -97,58 +98,67 @@ namespace JackIsBack.NetCoreLibrary
         private void InitializeActorSystemAnActors()
         {
             // Init TotalNumberOfTweetsActor
-            var totalNumberOfTweetsActorProps = _actorSystem.DI()
-                .Props<TotalNumberOfTweetsActor>()
-                .WithRouter(FromConfig.Instance);
-            _totalNumberOfTweetsActorRef =
-                _actorSystem.ActorOf(totalNumberOfTweetsActorProps, "TotalNumberOfTweetsActor");
+            _mainActorRef = _actorSystem.ActorOf( _actorSystem.DI()
+                .Props<MainActor>()
+                .WithRouter(FromConfig.Instance));
 
-            // Init TweetStatisticsActor
-            var tweetStatisticsActorProps = _actorSystem.DI().Props<TweetStatisticsActor>().WithRouter(FromConfig.Instance);
-            _tweetStatisticsActorRef =
-                _actorSystem.ActorOf(tweetStatisticsActorProps, "TweetStatisticsActor");
 
-            // Init TweetAverageActor
-            var tweetAverageActorProps = _actorSystem.DI().Props<TweetAverageActor>().WithRouter(FromConfig.Instance);
-            _tweetAverageActorRef = _actorSystem.ActorOf(tweetAverageActorProps, "TweetAverageActor");
+            //// Init TotalNumberOfTweetsActor
+            //var totalNumberOfTweetsActorProps = _actorSystem.DI()
+            //    .Props<TotalNumberOfTweetsActor>()
+            //    .WithRouter(new RoundRobinPool(40));
+            //_totalNumberOfTweetsActorRef =
+            //    _actorSystem.ActorOf(totalNumberOfTweetsActorProps, "TotalNumberOfTweetsActor");
 
-            //Init TopEmojisUsedActor
-            var topEmojisUsedActorProps = _actorSystem.DI().Props<TopEmojisUsedActor>().WithRouter(FromConfig.Instance);
-            _topEmojisUsedActorRef =
-                _actorSystem.ActorOf(topEmojisUsedActorProps, "TopEmojisUsedActor");
+            //// Init TweetStatisticsActor
+            //var tweetStatisticsActorProps = _actorSystem.DI()
+            //    .Props<TweetStatisticsActor>()
+            //    .WithRouter(new RoundRobinPool(40));
+            //_tweetStatisticsActorRef =
+            //    _actorSystem.ActorOf(tweetStatisticsActorProps, "TweetStatisticsActor");
 
-            // Init PercentOfTweetsContainingEmojisActor
-            var percentOfTweetsContainingEmojisActorProps =
-                _actorSystem.DI().Props<PercentOfTweetsContainingEmojisActor>().WithRouter(FromConfig.Instance);
-            _percentOfTweetsContainingEmojisActorRef =
-                _actorSystem.ActorOf(percentOfTweetsContainingEmojisActorProps, "PercentOfTweetsContainingEmojisActor");
+            //// Init TweetAverageActor
+            //var tweetAverageActorProps = _actorSystem.DI()
+            //    .Props<TweetAverageActor>()
+            //    .WithRouter(new RoundRobinPool(40));
+            //_tweetAverageActorRef = _actorSystem.ActorOf(tweetAverageActorProps, "TweetAverageActor");
 
-            // Init TopHashTagsActor
-            var topHashTagsActorProps = _actorSystem.DI().Props<TopHashTagsActor>().WithRouter(FromConfig.Instance);
-            _topHashTagsActorRef =
-                _actorSystem.ActorOf(topHashTagsActorProps, "TopHashTagsActor");
+            ////Init TopEmojisUsedActor
+            //var topEmojisUsedActorProps = _actorSystem.DI().Props<TopEmojisUsedActor>().WithRouter(FromConfig.Instance);
+            //_topEmojisUsedActorRef =
+            //    _actorSystem.ActorOf(topEmojisUsedActorProps, "TopEmojisUsedActor");
 
-            // Init PercentOfTweetsWithUrlActor
-            var percentOfTweetsWithUrlActorProps = _actorSystem.DI().Props<PercentOfTweetsWithUrlActor>().WithRouter(FromConfig.Instance);
-            _percentOfTweetsWithUrlActorRef =
-                _actorSystem.ActorOf(percentOfTweetsWithUrlActorProps, "PercentOfTweetsWithUrlActor");
+            //// Init PercentOfTweetsContainingEmojisActor
+            //var percentOfTweetsContainingEmojisActorProps =
+            //    _actorSystem.DI().Props<PercentOfTweetsContainingEmojisActor>().WithRouter(FromConfig.Instance);
+            //_percentOfTweetsContainingEmojisActorRef =
+            //    _actorSystem.ActorOf(percentOfTweetsContainingEmojisActorProps, "PercentOfTweetsContainingEmojisActor");
 
-            // Init PercentOfTweetsWithPhotoUrlActor
-            var percentOfTweetsWithPhotoUrlActorProps = _actorSystem.DI().Props<PercentOfTweetsWithPhotoUrlActor>().WithRouter(FromConfig.Instance);
-            _percentOfTweetsWithPhotoUrlActorRef =
-                _actorSystem.ActorOf(percentOfTweetsWithPhotoUrlActorProps, "PercentOfTweetsWithPhotoUrlActor");
+            //// Init TopHashTagsActor
+            ////var topHashTagsActorProps = _actorSystem.DI().Props<TopHashTagsActor>().WithRouter(FromConfig.Instance);
+            //var topHashTagsActorProps = _actorSystem.DI().Props<TopHashTagsActor>().WithRouter(new RoundRobinPool(3));
+            //_topHashTagsActorRef =
+            //    _actorSystem.ActorOf(topHashTagsActorProps, "TopHashTagsActor");
 
-            // Init TopDomainsActor
-            var topDomainsActorProps = _actorSystem.DI().Props<TopDomainsActor>().WithRouter(FromConfig.Instance);
-            _topDomainsActorRef =
-                _actorSystem.ActorOf(topDomainsActorProps, "TopDomainsActor");
+            //// Init PercentOfTweetsWithUrlActor
+            //var percentOfTweetsWithUrlActorProps = _actorSystem.DI().Props<PercentOfTweetsWithUrlActor>().WithRouter(FromConfig.Instance);
+            //_percentOfTweetsWithUrlActorRef =
+            //    _actorSystem.ActorOf(percentOfTweetsWithUrlActorProps, "PercentOfTweetsWithUrlActor");
+
+            //// Init PercentOfTweetsWithPhotoUrlActor
+            //var percentOfTweetsWithPhotoUrlActorProps = _actorSystem.DI().Props<PercentOfTweetsWithPhotoUrlActor>().WithRouter(FromConfig.Instance);
+            //_percentOfTweetsWithPhotoUrlActorRef =
+            //    _actorSystem.ActorOf(percentOfTweetsWithPhotoUrlActorProps, "PercentOfTweetsWithPhotoUrlActor");
+
+            //// Init TopDomainsActor
+            //var topDomainsActorProps = _actorSystem.DI().Props<TopDomainsActor>().WithRouter(FromConfig.Instance);
+            //_topDomainsActorRef =
+            //    _actorSystem.ActorOf(topDomainsActorProps, "TopDomainsActor");
         }
 
         public TweetGenerator()
         {
             TweetStatistics.StartDateTime = new TimeSpan(DateTime.Now.Ticks);
-
-            //TestSerialization();
 
             InitializeTweetStatisticsAverageCounters();
             InitializeDIContainer();
@@ -167,22 +177,40 @@ namespace JackIsBack.NetCoreLibrary
         public void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
             MyTweetDTO myTweetDTO = null;
-            try
+            var hashTags = new List<string>();
+            if (!string.IsNullOrEmpty(e.Tweet.Text))
             {
-                var mapper = _container.Resolve<IMapper>();
-                TweetDTO tweetDto = mapper.Map<TweetDTO>(e.Tweet.TweetDTO);
-                myTweetDTO = new MyTweetDTO(tweetDto.Text);
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Logger.Debug($"ex.Message: {ex.Message}, ex.StackTrace: {ex.StackTrace}");
+                try
+                {
+                    var mapper = _container.Resolve<IMapper>();
+                    TweetDTO tweetDto = mapper.Map<TweetDTO>(e.Tweet.TweetDTO);
+
+                    //Pick off hashTags
+                    if (tweetDto?.Entities?.Hashtags != null && tweetDto.Entities.Hashtags.Any())
+                    {
+                        var entitiesHashtags = tweetDto.Entities.Hashtags;
+
+                        hashTags = entitiesHashtags
+                            .Where(r => r.Text.Length <= 20)
+                            .Select(r => r.Text)
+                            .ToList();
+                    }
+
+                    myTweetDTO = new MyTweetDTO(tweetDto.Text);
+
+                }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Logger.Debug($"ex.Message: {ex.Message}, ex.StackTrace: {ex.StackTrace}");
+                }
             }
 
             _totalNumberOfTweetsActorRef.Tell(myTweetDTO);
             _tweetAverageActorRef.Tell(myTweetDTO);
             //_topEmojisUsedActorRef.Tell(myTweetDTO);
             //_percentOfTweetsContainingEmojisActorRef.Tell(myTweetDTO);
-            _topHashTagsActorRef.Tell(myTweetDTO);
+            if (hashTags.Any())
+                _topHashTagsActorRef.Tell(hashTags);
             //_percentOfTweetsWithUrlActorRef.Tell(myTweetDTO);
             //_percentOfTweetsWithPhotoUrlActorRef.Tell(myTweetDTO;
             //_topDomainsActorRef.Tell(myTweetDTO);

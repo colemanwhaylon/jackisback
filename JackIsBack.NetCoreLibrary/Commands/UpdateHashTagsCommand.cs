@@ -16,7 +16,7 @@ namespace JackIsBack.NetCoreLibrary.Commands
         public UpdateHashTagsCommand(MyTweetDTO tweet)
         {
             _tweet = tweet;
-            _values = new List<KeyValuePair<string, long>>(); 
+            _values = new List<KeyValuePair<string, long>>();
         }
 
         public void Execute()
@@ -42,6 +42,58 @@ namespace JackIsBack.NetCoreLibrary.Commands
                         TweetStatistics.HashTags.TryAdd(key, 1);
                         _values.Add(new KeyValuePair<string, long>(key, 1));
                     }
+                }
+            }
+        }
+
+        public bool CanExecute()
+        {
+            return true;
+        }
+
+        public void Undo()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            foreach (KeyValuePair<string, long> keyValuePair in _values)
+            {
+                sb.Append(keyValuePair.Key + " and " + keyValuePair.Value + " are present now.\n");
+            }
+
+            return sb.ToString();
+        }
+    }
+
+    public class UpdateListOfHashTagsCommand : ICommand
+    {
+        private readonly List<string> _tweets;
+        private readonly List<KeyValuePair<string, long>> _values;
+        public UpdateListOfHashTagsCommand(List<string> tweets)
+        {
+            _tweets = tweets;
+        }
+
+        public void Execute()
+        {
+            long aValue;
+            foreach (var item in _tweets)
+            {
+                if (TweetStatistics.HashTags.ContainsKey(item))
+                {
+                    if (TweetStatistics.HashTags.TryGetValue(item, out aValue))
+                    {
+                        TweetStatistics.HashTags.AddOrUpdate(item, aValue + 1);
+                        _values.Add(new KeyValuePair<string, long>(item, aValue + 1));
+                    }
+                }
+                else
+                {
+                    TweetStatistics.HashTags.TryAdd(item, 1);
+                    _values.Add(new KeyValuePair<string, long>(item, 1));
                 }
             }
         }
