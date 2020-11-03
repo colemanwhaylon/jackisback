@@ -4,6 +4,7 @@ namespace JackIsBack.NetCoreLibrary.Interfaces
 {
     public interface ITweetGenerator
     {
-        Task Run();
+        Task RunAsync();
+        Task StopAsync();
     }
 }

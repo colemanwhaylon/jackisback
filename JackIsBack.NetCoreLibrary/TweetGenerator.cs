@@ -1,7 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.DI.AutoFac;
 using Akka.DI.Core;
-using Akka.Routing;
 using Akka.Util.Internal;
 using Autofac;
 using AutoMapper;
@@ -13,6 +12,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Akka.Event;
+using Akka.Routing;
+using Hyperion.Internal;
+using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
 using Tweetinvi.Events;
@@ -22,8 +25,9 @@ using Tweetinvi.Streaming;
 
 namespace JackIsBack.NetCoreLibrary
 {
-    public class TweetGenerator : ITweetGenerator
+    public class TweetGenerator : ReceiveActor, ITweetGenerator
     {
+        private readonly ILoggingAdapter _logger = Context.GetLogger();
         private static ActorSystem _actorSystem;
         private ISampleStream _sampleStream;
         private static IContainer _container;
@@ -39,13 +43,38 @@ namespace JackIsBack.NetCoreLibrary
         private static IActorRef _topDomainsActorRef;
         private static IActorRef _tweetStatisticsActorRef;
 
+        public TweetGenerator()
+        {
+            TweetStatistics.StartDateTime = new TimeSpan(DateTime.Now.Ticks);
+
+            InitializeTweetStatisticsAverageCounters();
+            InitializeDIContainer();
+            InitializeActorSystemAnActors();
+
+            Receive<string>(HandleReceivedTweet);
+        }
+
+        private void HandleReceivedTweet(string obj)
+        {
+            _mainActorRef = Context.ActorOf(Context.DI().Props<HashTagAnalyzerActor>().WithRouter(FromConfig.Instance));
+        }
+
+        private void InitializeTweetStatisticsAverageCounters()
+        {
+            TweetStatistics.TotalTweetCount = 0;
+            TweetStatistics.AverageTweetsPerHour = 0;
+            TweetStatistics.AverageTweetsPerMinute = 0;
+            TweetStatistics.AverageTweetsPerSecond = 0;
+            TweetStatistics.HashTags = new Dictionary<string, long>();
+        }
+
         private void InitializeDIContainer()
         {
             var logger = new LoggerConfiguration()
                 //.WriteTo.Seq("http://localhost:5341") //todo:enable Seq before release to prod.
                 .WriteTo.ColoredConsole()
                 .WriteTo.RollingFile("log.txt",
-                    Serilog.Events.LogEventLevel.Information,
+                    Serilog.Events.LogEventLevel.Debug,
                     fileSizeLimitBytes: 1024,
                     retainedFileCountLimit: 1,
                     buffered: false)
@@ -82,9 +111,7 @@ namespace JackIsBack.NetCoreLibrary
             builder.RegisterType<TweetStatisticsActor>();
             builder.RegisterType<TweetDTO>();
 
-            //builder.RegisterType<MyTweetDTO>().As<IMyTweetDTO>();
             ///* Mapping types:
-
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<IUser, IUserDTO>();
@@ -99,25 +126,20 @@ namespace JackIsBack.NetCoreLibrary
 
         private void InitializeActorSystemAnActors()
         {
-            // Init TotalNumberOfTweetsActor
-            _mainActorRef = _actorSystem.ActorOf( _actorSystem.DI()
+            // Init MainActor
+            _mainActorRef = Context.ActorOf(Context.DI()
                 .Props<MainActor>()
-                .WithRouter(FromConfig.Instance));
+                .WithRouter(FromConfig.Instance), "MainActor");
 
-
-            //// Init TotalNumberOfTweetsActor
-            //var totalNumberOfTweetsActorProps = _actorSystem.DI()
+            // Init TotalNumberOfTweetsActor
+            //var totalNumberOfTweetsActorProps = _actorSystem.ActorOf(_actorSystem.DI()
             //    .Props<TotalNumberOfTweetsActor>()
-            //    .WithRouter(new RoundRobinPool(40));
-            //_totalNumberOfTweetsActorRef =
-            //    _actorSystem.ActorOf(totalNumberOfTweetsActorProps, "TotalNumberOfTweetsActor");
+            //    .WithRouter(FromConfig.Instance), "TotalNumberOfTweetsActor");
 
             //// Init TweetStatisticsActor
-            //var tweetStatisticsActorProps = _actorSystem.DI()
+            //var tweetStatisticsActorProps = _actorSystem.ActorOf(  _actorSystem.DI()
             //    .Props<TweetStatisticsActor>()
-            //    .WithRouter(new RoundRobinPool(40));
-            //_tweetStatisticsActorRef =
-            //    _actorSystem.ActorOf(tweetStatisticsActorProps, "TweetStatisticsActor");
+            //    .WithRouter(FromConfig.Instance), "TweetStatisticsActor");
 
             //// Init TweetAverageActor
             //var tweetAverageActorProps = _actorSystem.DI()
@@ -158,88 +180,39 @@ namespace JackIsBack.NetCoreLibrary
             //    _actorSystem.ActorOf(topDomainsActorProps, "TopDomainsActor");
         }
 
-        public TweetGenerator()
+        public async Task RunAsync()
         {
-            TweetStatistics.StartDateTime = new TimeSpan(DateTime.Now.Ticks);
-
-            InitializeTweetStatisticsAverageCounters();
-            InitializeDIContainer();
-            InitializeActorSystemAnActors();
-        }
-
-        private void InitializeTweetStatisticsAverageCounters()
-        {
-            TweetStatistics.TotalTweetCount = 0;
-            TweetStatistics.AverageTweetsPerHour = 0;
-            TweetStatistics.AverageTweetsPerMinute = 0;
-            TweetStatistics.AverageTweetsPerSecond = 0;
-            TweetStatistics.HashTags = new Dictionary<string, long>();
-        }
-
-        public void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
-        {
-            MyTweetDTO myTweetDTO = null;
-            var hashTags = new List<string>();
-            if (!string.IsNullOrEmpty(e.Tweet.Text))
+            var startTask = Task.Factory.StartNew(() =>
             {
-                try
-                {
-                    var mapper = _container.Resolve<IMapper>();
-                    TweetDTO tweetDto = mapper.Map<TweetDTO>(e.Tweet.TweetDTO);
+                _logger.Debug("RunAsync was called.");
 
-                    //Pick off hashTags
-                    if (tweetDto?.Entities?.Hashtags != null && tweetDto.Entities.Hashtags.Any())
-                    {
-                        var entitiesHashtags = tweetDto.Entities.Hashtags;
+                var twitterClient = _container.Resolve(typeof(TwitterClient)).AsInstanceOf<TwitterClient>();
+                _sampleStream = twitterClient.Streams.CreateSampleStream();
+                _sampleStream.TweetReceived += SampleStreamOnTweetReceived;
+                _sampleStream.StartAsync();
 
-                        hashTags = entitiesHashtags
-                            .Where(r => r.Text.Length <= 20)
-                            .Select(r => r.Text)
-                            .ToList();
-                    }
-
-                    myTweetDTO = new MyTweetDTO(tweetDto.Text);
-
-                }
-                catch (Exception ex)
-                {
-                    Serilog.Log.Logger.Debug($"ex.Message: {ex.Message}, ex.StackTrace: {ex.StackTrace}");
-                }
-            }
-
-            _totalNumberOfTweetsActorRef.Tell(myTweetDTO);
-            _tweetAverageActorRef.Tell(myTweetDTO);
-            //_topEmojisUsedActorRef.Tell(myTweetDTO);
-            //_percentOfTweetsContainingEmojisActorRef.Tell(myTweetDTO);
-            if (hashTags.Any())
-                _topHashTagsActorRef.Tell(hashTags);
-            //_percentOfTweetsWithUrlActorRef.Tell(myTweetDTO);
-            //_percentOfTweetsWithPhotoUrlActorRef.Tell(myTweetDTO;
-            //_topDomainsActorRef.Tell(myTweetDTO);
+                _logger.Debug("RunAsync Finished.");
+            });
         }
 
-        public async Task Run()
+        private void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
-            System.Console.WriteLine("Run was called.");
-
-            var twitterClient = _container.Resolve(typeof(TwitterClient)).AsInstanceOf<TwitterClient>();
-            _sampleStream = twitterClient.Streams.CreateSampleStream();
-            _sampleStream.TweetReceived += SampleStreamOnTweetReceived;
-            _sampleStream.StartAsync();
-
-            System.Console.WriteLine("Run Finished.");
+            Context.Self.Tell(e.Tweet.Text);
         }
 
-        public async Task Stop()
+        public async Task StopAsync()
         {
-            System.Console.WriteLine("Stop was called.");
+            var endTask = Task.Factory.StartNew(() =>
+            {
+                _logger.Debug("StopAsync was called.");
 
-            _sampleStream.Stop();
-            _sampleStream.TweetReceived -= null;
+                _sampleStream.Stop();
+                _sampleStream.TweetReceived -= null;
 
-            System.Console.WriteLine("Stop Finished.");
+                _logger.Debug("StopAsync Finished.");
 
-            TweetStatistics.EndDateTime = new TimeSpan(DateTime.Now.Ticks);
+                TweetStatistics.EndDateTime = new TimeSpan(DateTime.Now.Ticks);
+            });
         }
     }
 }

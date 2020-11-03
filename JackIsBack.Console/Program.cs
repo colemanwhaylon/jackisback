@@ -1,45 +1,36 @@
 ﻿using JackIsBack.NetCoreLibrary;
+using JackIsBack.NetCoreLibrary.Interfaces;
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Akka.Actor;
-using JackIsBack.NetCoreLibrary.Actors;
-using Tweetinvi.Events;
 
 namespace JackIsBack.Console
 {
     /// <summary>
-    /// This client application will subscribe to a Tweet Stream within
-    /// JackIsBack.Common to display within the console.
+    /// This client application will call ITweetGenerator.RunAsync()
+    /// to start a Tweet Stream within JackIsBack.NetCoreLibrary to
+    /// kickoff results streaming to the console.  The Akka.Net's config
+    /// settings drive elastic scaling and processing of all Tweets.
     /// </summary>
     public class Program
     {
-        private static ActorSystem ActorSystem;
-
         public static async Task Main(string[] args)
         {
-            ActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
-            IActorRef mainActorRef = ActorSystem.ActorOf<MainActor>("MainActor");
-            
+            System.Console.Title = "Twitter Statistics App";
+            System.Console.WriteLine("Started Main()!");
 
-            //TweetGenerator tweetGenerator = new TweetGenerator();
+            ITweetGenerator tweetGenerator = new TweetGenerator();
             try
             {
-              //  await tweetGenerator.Run();
-                System.Console.Title = "Twitter Statistics App";
-                System.Console.WriteLine("Started Main()!");
-                System.Console.ReadLine();
+                await tweetGenerator.RunAsync();
             }
             catch (Exception exception)
             {
-                System.Console.WriteLine(exception);
+                System.Console.WriteLine($"Message: {exception.Message}\n, StackTrace: {exception.StackTrace}\n, InnerException: {exception.InnerException.Message}");
             }
             finally
             {
-                await ActorSystem.Terminate();
-
-                //await tweetGenerator.Stop();
-                System.Console.WriteLine("ActorSystem Finished()!");
+                await tweetGenerator.StopAsync();
+                System.Console.WriteLine("Stopped ActorSystem!");
             }
 
             System.Console.WriteLine("Program Done!");
