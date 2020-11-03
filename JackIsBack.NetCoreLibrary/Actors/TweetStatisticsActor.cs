@@ -16,13 +16,19 @@ namespace JackIsBack.NetCoreLibrary.Actors
             Receive<ChangeTweetQuantityCommand>(HandleIncreaseTweetCountCommand);
             Receive<UpdateTweetAverageCommand>(HandleTweetAverageCommand);
             Receive<UpdateHashTagsCommand>(HandleUpdateHashTagsCommand);
+            Receive<string>(HandleTweet);
+        }
+
+        private void HandleTweet(string message)
+        {
+            _logger.Debug($"TweetStatistics got tweet message: {message} from {Sender.Path}");
         }
 
         private void HandleUpdateHashTagsCommand(UpdateHashTagsCommand command)
         {
             command.Execute();
 
-            //_logger.Debug($"Command: {command.ToString()}\n");
+            
             _logger.Debug($"TweetStatistics.HashTags key count: {TweetStatistics.HashTags.Keys.Count}");
             TweetStatistics.HashTags.ToList().Sort((x,y)=> x.Value.CompareTo(y.Value));
             var list = TweetStatistics.HashTags.OrderByDescending((x) => x.Value).Take(5);

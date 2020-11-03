@@ -1,21 +1,16 @@
 ﻿using Akka.Actor;
 using Akka.DI.AutoFac;
 using Akka.DI.Core;
+using Akka.Event;
 using Akka.Util.Internal;
 using Autofac;
 using AutoMapper;
 using JackIsBack.NetCoreLibrary.Actors;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Akka.Event;
-using Akka.Routing;
-using Hyperion.Internal;
-using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
 using Tweetinvi.Events;
@@ -27,36 +22,48 @@ namespace JackIsBack.NetCoreLibrary
 {
     public class TweetGenerator : ReceiveActor, ITweetGenerator
     {
-        private readonly ILoggingAdapter _logger = Context.GetLogger();
+        private ILoggingAdapter _logger;
         private static ActorSystem _actorSystem;
         private ISampleStream _sampleStream;
         private static IContainer _container;
         private static IDependencyResolver _resolver;
         private static IActorRef _mainActorRef;
-        private static IActorRef _totalNumberOfTweetsActorRef;
-        private static IActorRef _tweetAverageActorRef;
-        private static IActorRef _topEmojisUsedActorRef;
-        private static IActorRef _percentOfTweetsContainingEmojisActorRef;
-        private static IActorRef _topHashTagsActorRef;
-        private static IActorRef _percentOfTweetsWithUrlActorRef;
-        private static IActorRef _percentOfTweetsWithPhotoUrlActorRef;
-        private static IActorRef _topDomainsActorRef;
         private static IActorRef _tweetStatisticsActorRef;
+        private bool _isInitialized = false;
 
         public TweetGenerator()
+        {
+            Receive<string>(HandleReceivedTweet);
+        }
+
+        private void HandleReceivedTweet(string message)
+        {
+            if (!_isInitialized)
+            {
+                this.Initialize();
+                this._isInitialized = true;
+            }
+
+            if (message == "Run")
+                this.Run();
+            else if (message == "Stop")
+            {
+                this.Stop();
+                this._isInitialized = false;
+            }
+
+            if (message != "Run" && message != "Stop")
+                _mainActorRef.Tell(message);
+        }
+        public void Initialize()
         {
             TweetStatistics.StartDateTime = new TimeSpan(DateTime.Now.Ticks);
 
             InitializeTweetStatisticsAverageCounters();
             InitializeDIContainer();
             InitializeActorSystemAnActors();
+            _logger = Context.GetLogger();
 
-            Receive<string>(HandleReceivedTweet);
-        }
-
-        private void HandleReceivedTweet(string obj)
-        {
-            _mainActorRef = Context.ActorOf(Context.DI().Props<HashTagAnalyzerActor>().WithRouter(FromConfig.Instance));
         }
 
         private void InitializeTweetStatisticsAverageCounters()
@@ -92,9 +99,6 @@ namespace JackIsBack.NetCoreLibrary
 
             builder.RegisterInstance(twitterClient).As<TwitterClient>();
 
-            _actorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
-
-
             Serilog.Log.Logger.Information("TwitterStatisticsActorSystem created");
 
             builder.RegisterType<TweetGenerator>()
@@ -109,6 +113,8 @@ namespace JackIsBack.NetCoreLibrary
             builder.RegisterType<PercentOfTweetsWithPhotoUrlActor>();
             builder.RegisterType<TopDomainsActor>();
             builder.RegisterType<TweetStatisticsActor>();
+            builder.RegisterType<MainActor>();
+            builder.RegisterType<HashTagAnalyzerActor>();
             builder.RegisterType<TweetDTO>();
 
             ///* Mapping types:
@@ -121,15 +127,17 @@ namespace JackIsBack.NetCoreLibrary
             builder.RegisterInstance<IMapper>(mapper);
 
             _container = builder.Build();
-            _resolver = new AutoFacDependencyResolver(_container, _actorSystem);
+            _resolver = new AutoFacDependencyResolver(_container, Context.System);
         }
 
         private void InitializeActorSystemAnActors()
         {
             // Init MainActor
-            _mainActorRef = Context.ActorOf(Context.DI()
-                .Props<MainActor>()
-                .WithRouter(FromConfig.Instance), "MainActor");
+            _mainActorRef = Context.ActorOf(Context.DI().Props<MainActor>(), "MainActor");
+
+            _tweetStatisticsActorRef = Context.ActorOf(Context.DI().Props<TweetStatisticsActor>(), "TweetStatisticsActor");
+            //var tweetStatisticsActorProps = Context.ActorOf(Context.DI()
+            //    .Props<TweetStatisticsActor>());
 
             // Init TotalNumberOfTweetsActor
             //var totalNumberOfTweetsActorProps = _actorSystem.ActorOf(_actorSystem.DI()
@@ -137,9 +145,8 @@ namespace JackIsBack.NetCoreLibrary
             //    .WithRouter(FromConfig.Instance), "TotalNumberOfTweetsActor");
 
             //// Init TweetStatisticsActor
-            //var tweetStatisticsActorProps = _actorSystem.ActorOf(  _actorSystem.DI()
-            //    .Props<TweetStatisticsActor>()
-            //    .WithRouter(FromConfig.Instance), "TweetStatisticsActor");
+            //var tweetStatisticsActorProps = Context.ActorOf(Context.DI()
+            //    .Props<TweetStatisticsActor>());
 
             //// Init TweetAverageActor
             //var tweetAverageActorProps = _actorSystem.DI()
@@ -180,39 +187,34 @@ namespace JackIsBack.NetCoreLibrary
             //    _actorSystem.ActorOf(topDomainsActorProps, "TopDomainsActor");
         }
 
-        public async Task RunAsync()
+        public void Run()
         {
-            var startTask = Task.Factory.StartNew(() =>
-            {
-                _logger.Debug("RunAsync was called.");
+            _logger.Debug("Run was called.");
 
-                var twitterClient = _container.Resolve(typeof(TwitterClient)).AsInstanceOf<TwitterClient>();
-                _sampleStream = twitterClient.Streams.CreateSampleStream();
-                _sampleStream.TweetReceived += SampleStreamOnTweetReceived;
-                _sampleStream.StartAsync();
+            var twitterClient = _container.Resolve(typeof(TwitterClient)).AsInstanceOf<TwitterClient>();
+            _sampleStream = twitterClient.Streams.CreateSampleStream();
+            _sampleStream.TweetReceived += SampleStreamOnTweetReceived;
+            _sampleStream.StartAsync();
 
-                _logger.Debug("RunAsync Finished.");
-            });
+            _logger.Debug("Run Finished.");
         }
 
         private void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
-            Context.Self.Tell(e.Tweet.Text);
+            if (!string.IsNullOrEmpty(e.Tweet.Text))
+                _mainActorRef.Tell(e.Tweet.Text);
         }
 
-        public async Task StopAsync()
+        public void Stop()
         {
-            var endTask = Task.Factory.StartNew(() =>
-            {
-                _logger.Debug("StopAsync was called.");
+            _logger.Debug("Stop was called.");
 
-                _sampleStream.Stop();
-                _sampleStream.TweetReceived -= null;
+            _sampleStream.Stop();
+            _sampleStream.TweetReceived -= null;
 
-                _logger.Debug("StopAsync Finished.");
+            _logger.Debug("Stop Finished.");
 
-                TweetStatistics.EndDateTime = new TimeSpan(DateTime.Now.Ticks);
-            });
+            TweetStatistics.EndDateTime = new TimeSpan(DateTime.Now.Ticks);
         }
     }
 }
