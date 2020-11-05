@@ -29,11 +29,15 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private static IDependencyResolver _resolver;
         private static IActorRef _mainActorRef;
         private static IActorRef _tweetStatisticsActorRef;
-        private IActorRef _hashTagAnalyzerActorRef;
+        private IActorRef _topHashTagsAnalyzerActorRef;
         private IActorRef _topEmojisUsedAnalyzerActorRef;
         private IActorRef _tweetAverageAnalyzerActorRef;
 
         private bool _isInitialized = false;
+        private IActorRef _totalNumberOfTweetsAnalyzerActorRef;
+        private IActorRef _topDomainsAnalyzerActorRef;
+        private IActorRef _percentOfTweetsWithPhotoUrlAnalyzerActorRef;
+        private IActorRef _percentOfTweetsContainingEmojisAnalyzerActorRef;
 
         public TweetGeneratorActor()
         {
@@ -121,7 +125,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             builder.RegisterType<MainActor>();
 
             //Register Analyzer Actors
-            builder.RegisterType<HashTagAnalyzerActor>();
+            builder.RegisterType<TopHashTagsAnalyzerActor>();
             builder.RegisterType<TopEmojisUsedAnalyzerActor>();
             builder.RegisterType<TweetAverageAnalyzerActor>();
             builder.RegisterType<TweetDTO>();
@@ -143,26 +147,26 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private void InitializeActorSystemAnActors()
         {
             // Init MainActor
-            //_mainActorRef = Context.ActorOf(Context.DI().Props<MainActor>().WithRouter(new RoundRobinPool(10, new DefaultResizer(40, 60, 1))), "MainActor");
-            
-            //todo:either which way these two statements worked with my configuration in app.config
-            //_mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
             _mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
 
-
-            _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
-            _hashTagAnalyzerActorRef = Context.ActorOf(Context.DI().Props<HashTagAnalyzerActor>(), "HashTagAnalyzerActor");
+            // Init Analyzer Actors
+            _percentOfTweetsContainingEmojisAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsContainingEmojisAnalyzerActor>(), "PercentOfTweetsContainingEmojisAnalyzerActor");
+            _percentOfTweetsWithPhotoUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithPhotoUrlAnalyzerActor>(), "PercentOfTweetsWithPhotoUrlAnalyzerActor");
+            _topDomainsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopDomainsAnalyzerActor>(), "TopDomainsAnalyzerActor");
             _topEmojisUsedAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
+            _topHashTagsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
+            _totalNumberOfTweetsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TotalNumberOfTweetsAnalyzerActor>(), "TotalNumberOfTweetsAnalyzerActor");
+            _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
 
 
             List<IActorRef> analyzerActorRefs = new List<IActorRef>
             {
-                _hashTagAnalyzerActorRef,
+                _topHashTagsAnalyzerActorRef,
                 _topEmojisUsedAnalyzerActorRef,
                 _tweetAverageAnalyzerActorRef
             };
 
-            ActorSystem.ActorOf(ActorSystem.DI().Props<HashTagAnalyzerActor>(), "HashTagAnalyzerActor");
+            ActorSystem.ActorOf(ActorSystem.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
             ActorSystem.ActorOf(ActorSystem.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
             ActorSystem.ActorOf(ActorSystem.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
 

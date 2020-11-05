@@ -5,13 +5,14 @@ using JackIsBack.NetCoreLibrary.DTO;
 
 namespace JackIsBack.NetCoreLibrary.Actors
 {
-    public class PercentOfTweetsWithUrlActor : ReceiveActor
+    public class PercentOfTweetsContainingEmojisActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private static long Count { get; set; } = 0;
-        public PercentOfTweetsWithUrlActor()
+        private double PercentOfTweetsContainingEmojis { get; set; } = 0.0;
+
+        public PercentOfTweetsContainingEmojisActor()
         {
-            _logger.Info("PercentOfTweetsWithUrlActor created.");
+            _logger.Info("PercentOfTweetsContainingEmojisActor created.");
             Receive<MyTweetDTO>(HandleTwitterMessageAsync);
         }
 
@@ -23,7 +24,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
                 //var commandManager = new CommandManager();
                 //commandManager.Invoke(command);
 
-                System.Console.WriteLine($"PercentOfTweetsWithUrlActor wrote " + tweet);
+                System.Console.WriteLine($"PercentOfTweetsContainingEmojisActor wrote " + tweet);
             });
         }
     }
