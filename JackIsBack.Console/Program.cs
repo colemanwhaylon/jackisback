@@ -1,10 +1,8 @@
-﻿using JackIsBack.NetCoreLibrary;
+﻿using Akka.Actor;
+using JackIsBack.NetCoreLibrary.Actors;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using System;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
-using Akka.Actor;
-using JackIsBack.NetCoreLibrary.Actors;
 
 namespace JackIsBack.Console
 {
@@ -20,13 +18,17 @@ namespace JackIsBack.Console
 
         public static async Task Main(string[] args)
         {
+            var command = TweetGeneratorActorCommand.None;
             try
             {
                 System.Console.Title = "Twitter Statistics App";
-                ActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
                 System.Console.WriteLine("Started Main()!");
 
-                ActorSystem.ActorOf<TweetGeneratorActor>("TweetGeneratorActor").Tell("Run");
+                ActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
+
+                command = TweetGeneratorActorCommand.StartUp;
+                var tweetGeneratorActor = ActorSystem.ActorOf<TweetGeneratorActor>("TweetGeneratorActor");
+                tweetGeneratorActor.Tell(command);
 
                 await ActorSystem.WhenTerminated.ConfigureAwait(false);
             }
@@ -36,14 +38,15 @@ namespace JackIsBack.Console
             }
             finally
             {
-                ActorSystem.ActorOf<TweetGeneratorActor>().Tell("Stop");
+                command = TweetGeneratorActorCommand.Shutdown;
+                ActorSystem.ActorOf<TweetGeneratorActor>().Tell(command);
 
-                ActorSystem.Terminate();
+                await ActorSystem.Terminate();
 
                 System.Console.WriteLine("Stopped ActorSystem!");
             }
 
-            System.Console.WriteLine("Program Done!");
+            System.Console.WriteLine("Program Finished!");
             System.Console.ReadLine();
         }
 

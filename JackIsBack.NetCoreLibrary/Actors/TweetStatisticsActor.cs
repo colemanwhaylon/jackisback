@@ -3,6 +3,8 @@ using Akka.Actor;
 using Akka.Event;
 using System.Linq;
 using System.Collections;
+using Akka.DI.Core;
+using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using JackIsBack.NetCoreLibrary.Commands;
 
 namespace JackIsBack.NetCoreLibrary.Actors
@@ -10,10 +12,32 @@ namespace JackIsBack.NetCoreLibrary.Actors
     public class TweetStatisticsActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
+        //Initialize Analyzer Actors
+        private IActorRef _topHashTagsAnalyzerActorRef;
+        private IActorRef _topEmojisUsedAnalyzerActorRef;
+        private IActorRef _tweetAverageAnalyzerActorRef;
+        private IActorRef _topDomainsAnalyzerActorRef;
+        private IActorRef _percentOfTweetsWithPhotoUrlAnalyzerActorRef;
+        private IActorRef _percentOfTweetsContainingEmojisAnalyzerActorRef;
+        private IActorRef _percentOfTweetsWithUrlAnalyzerActorRef;
+
         public TweetStatisticsActor()
         {
             _logger.Debug("TweetStatisticsActor created.");
-            Receive<ChangeTweetQuantityCommand>(HandleIncreaseTweetCountCommand);
+
+            // Init Analyzer Actors
+            _percentOfTweetsContainingEmojisAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsContainingEmojisAnalyzerActor>(), "PercentOfTweetsContainingEmojisAnalyzerActor");
+            _percentOfTweetsWithPhotoUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithPhotoUrlAnalyzerActor>(), "PercentOfTweetsWithPhotoUrlAnalyzerActor");
+            _percentOfTweetsWithUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithUrlAnalyzerActor>(), "PercentOfTweetsWithUrlAnalyzerActor");
+            _topDomainsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopDomainsAnalyzerActor>(), "TopDomainsAnalyzerActor");
+            _topEmojisUsedAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
+            _topHashTagsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
+            _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
+
+
+
+
+            Receive<ChangeTotalNumberOfTweetsMessage>(HandleIncreaseTweetCountCommand);
             Receive<UpdateTweetAverageCommand>(HandleTweetAverageCommand);
             Receive<UpdateHashTagsCommand>(HandleUpdateHashTagsCommand);
             Receive<string>(HandleTweet);
@@ -56,7 +80,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
                           $"\tTweetStatistics.AverageTweetsPerSecond: {TweetStatistics.AverageTweetsPerSecond}");
         }
 
-        private void HandleIncreaseTweetCountCommand(ChangeTweetQuantityCommand command)
+        private void HandleIncreaseTweetCountCommand(ChangeTotalNumberOfTweetsMessage command)
         {
             command.Execute();
 

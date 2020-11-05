@@ -2,6 +2,7 @@
 using Akka.Event;
 using JackIsBack.NetCoreLibrary.Commands;
 using System.Collections.Generic;
+using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors
 {

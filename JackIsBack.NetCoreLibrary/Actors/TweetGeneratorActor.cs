@@ -10,6 +10,7 @@ using Autofac;
 using AutoMapper;
 using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using JackIsBack.NetCoreLibrary.Interfaces;
+using JackIsBack.NetCoreLibrary.Messages;
 using Serilog;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
@@ -29,59 +30,47 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private static IDependencyResolver _resolver;
         private static IActorRef _mainActorRef;
         private static IActorRef _tweetStatisticsActorRef;
-        private IActorRef _topHashTagsAnalyzerActorRef;
-        private IActorRef _topEmojisUsedAnalyzerActorRef;
-        private IActorRef _tweetAverageAnalyzerActorRef;
-
         private bool _isInitialized = false;
-        private IActorRef _totalNumberOfTweetsAnalyzerActorRef;
-        private IActorRef _topDomainsAnalyzerActorRef;
-        private IActorRef _percentOfTweetsWithPhotoUrlAnalyzerActorRef;
-        private IActorRef _percentOfTweetsContainingEmojisAnalyzerActorRef;
 
         public TweetGeneratorActor()
         {
-            Receive<string>(HandleReceivedTweet);
+            _isInitialized = Initialize();
+
+            // Init MainActor
+            //_mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
+
+            _mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
+            _tweetStatisticsActorRef = Context.ActorOf(Props.Create<TweetStatisticsActor>(), "TweetStatisticsActor");
+
+            Receive<TweetGeneratorActorCommand>(HandleTweetGeneratorActorCommand);
         }
 
-        private void HandleReceivedTweet(string message)
+        private void HandleTweetGeneratorActorCommand(TweetGeneratorActorCommand command)
         {
-            if (!_isInitialized)
-            {
-                this.Initialize();
-                this._isInitialized = true;
-            }
-
-            if (message == "Run")
+            if (command == TweetGeneratorActorCommand.StartUp)
                 this.Run();
-            else if (message == "Stop")
+            else if (command == TweetGeneratorActorCommand.Shutdown)
             {
                 this.Stop();
                 this._isInitialized = false;
             }
-
-            if (message != "Run" && message != "Stop")
-                _mainActorRef.Tell(message);
         }
-        public void Initialize()
+
+        private bool Initialize()
         {
-            TweetStatistics.StartDateTime = new TimeSpan(DateTime.Now.Ticks);
+            try
+            {
+                _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(DateTime.Now.Ticks, null));
+                InitializeDIContainer();
+            }
+            catch (Exception exception)
+            {
+                _logger.Debug($"Message: {exception.Message}, StackTrace: {exception.StackTrace}");
+            }
 
-            InitializeTweetStatisticsAverageCounters();
-            InitializeDIContainer();
-            InitializeActorSystemAnActors();
-            _logger = Context.GetLogger();
-
+            return true;
         }
 
-        private void InitializeTweetStatisticsAverageCounters()
-        {
-            TweetStatistics.TotalTweetCount = 0;
-            TweetStatistics.AverageTweetsPerHour = 0;
-            TweetStatistics.AverageTweetsPerMinute = 0;
-            TweetStatistics.AverageTweetsPerSecond = 0;
-            TweetStatistics.HashTags = new Dictionary<string, long>();
-        }
 
         private void InitializeDIContainer()
         {
@@ -109,8 +98,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
             Serilog.Log.Logger.Information("TwitterStatisticsActorSystem created");
 
-            builder.RegisterType<TweetGeneratorActor>()
-                .As<ITweetGenerator>();
+            builder.RegisterType<TweetGeneratorActor>().As<ITweetGenerator>();
 
             //Register All Actors
             builder.RegisterType<TotalNumberOfTweetsActor>();
@@ -123,14 +111,23 @@ namespace JackIsBack.NetCoreLibrary.Actors
             builder.RegisterType<TopDomainsActor>();
             builder.RegisterType<TweetStatisticsActor>();
             builder.RegisterType<MainActor>();
+            builder.RegisterType<TimeKeeperActor>();
 
             //Register Analyzer Actors
-            builder.RegisterType<TopHashTagsAnalyzerActor>();
+            builder.RegisterType<PercentOfTweetsContainingEmojisAnalyzerActor>();
+            builder.RegisterType<PercentOfTweetsWithPhotoUrlAnalyzerActor>();
+            builder.RegisterType<PercentOfTweetsWithUrlAnalyzerActor>();
+            builder.RegisterType<TopDomainsAnalyzerActor>();
             builder.RegisterType<TopEmojisUsedAnalyzerActor>();
+            builder.RegisterType<TopHashTagsAnalyzerActor>();
             builder.RegisterType<TweetAverageAnalyzerActor>();
-            builder.RegisterType<TweetDTO>();
 
-            ///* Mapping types:
+            //Register Messages
+            builder.RegisterType<ChangeTotalNumberOfTweetsMessage>();
+            builder.RegisterType<TimeKeeperActorMessage>();
+
+            ///AutoMapper Mapping types:
+            builder.RegisterType<TweetDTO>();
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<IUser, IUserDTO>();
@@ -142,83 +139,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _container = builder.Build();
             _resolver = new AutoFacDependencyResolver(_container, Context.System);
             ActorSystem = Context.System;
-        }
-
-        private void InitializeActorSystemAnActors()
-        {
-            // Init MainActor
-            _mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
-
-            // Init Analyzer Actors
-            _percentOfTweetsContainingEmojisAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsContainingEmojisAnalyzerActor>(), "PercentOfTweetsContainingEmojisAnalyzerActor");
-            _percentOfTweetsWithPhotoUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithPhotoUrlAnalyzerActor>(), "PercentOfTweetsWithPhotoUrlAnalyzerActor");
-            _topDomainsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopDomainsAnalyzerActor>(), "TopDomainsAnalyzerActor");
-            _topEmojisUsedAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
-            _topHashTagsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
-            _totalNumberOfTweetsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TotalNumberOfTweetsAnalyzerActor>(), "TotalNumberOfTweetsAnalyzerActor");
-            _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
-
-
-            List<IActorRef> analyzerActorRefs = new List<IActorRef>
-            {
-                _topHashTagsAnalyzerActorRef,
-                _topEmojisUsedAnalyzerActorRef,
-                _tweetAverageAnalyzerActorRef
-            };
-
-            ActorSystem.ActorOf(ActorSystem.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
-            ActorSystem.ActorOf(ActorSystem.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
-            ActorSystem.ActorOf(ActorSystem.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
-
-            //var tweetStatisticsActorProps = Context.ActorOf(Context.DI()
-            //    .Props<TweetStatisticsActor>());
-
-            // Init TotalNumberOfTweetsActor
-            //var totalNumberOfTweetsActorProps = ActorSystem.ActorOf(ActorSystem.DI()
-            //    .Props<TotalNumberOfTweetsActor>()
-            //    .WithRouter(FromConfig.Instance), "TotalNumberOfTweetsActor");
-
-            //// Init TweetStatisticsActor
-            //var tweetStatisticsActorProps = Context.ActorOf(Context.DI()
-            //    .Props<TweetStatisticsActor>());
-
-            //// Init TweetAverageActor
-            //var tweetAverageActorProps = ActorSystem.DI()
-            //    .Props<TweetAverageActor>()
-            //    .WithRouter(new RoundRobinPool(40));
-            //_tweetAverageActorRef = ActorSystem.ActorOf(tweetAverageActorProps, "TweetAverageActor");
-
-            ////Init TopEmojisUsedActor
-            //var topEmojisUsedActorProps = ActorSystem.DI().Props<TopEmojisUsedActor>().WithRouter(FromConfig.Instance);
-            //_topEmojisUsedAnalyzerActorRef =
-            //    ActorSystem.ActorOf(topEmojisUsedActorProps, "TopEmojisUsedActor");
-
-            //// Init PercentOfTweetsContainingEmojisActor
-            //var percentOfTweetsContainingEmojisActorProps =
-            //    ActorSystem.DI().Props<PercentOfTweetsContainingEmojisActor>().WithRouter(FromConfig.Instance);
-            //_percentOfTweetsContainingEmojisActorRef =
-            //    ActorSystem.ActorOf(percentOfTweetsContainingEmojisActorProps, "PercentOfTweetsContainingEmojisActor");
-
-            //// Init TopHashTagsActor
-            ////var topHashTagsActorProps = ActorSystem.DI().Props<TopHashTagsActor>().WithRouter(FromConfig.Instance);
-            //var topHashTagsActorProps = ActorSystem.DI().Props<TopHashTagsActor>().WithRouter(new RoundRobinPool(3));
-            //_topHashTagsActorRef =
-            //    ActorSystem.ActorOf(topHashTagsActorProps, "TopHashTagsActor");
-
-            //// Init PercentOfTweetsWithUrlActor
-            //var percentOfTweetsWithUrlActorProps = ActorSystem.DI().Props<PercentOfTweetsWithUrlActor>().WithRouter(FromConfig.Instance);
-            //_percentOfTweetsWithUrlActorRef =
-            //    ActorSystem.ActorOf(percentOfTweetsWithUrlActorProps, "PercentOfTweetsWithUrlActor");
-
-            //// Init PercentOfTweetsWithPhotoUrlActor
-            //var percentOfTweetsWithPhotoUrlActorProps = ActorSystem.DI().Props<PercentOfTweetsWithPhotoUrlActor>().WithRouter(FromConfig.Instance);
-            //_percentOfTweetsWithPhotoUrlActorRef =
-            //    ActorSystem.ActorOf(percentOfTweetsWithPhotoUrlActorProps, "PercentOfTweetsWithPhotoUrlActor");
-
-            //// Init TopDomainsActor
-            //var topDomainsActorProps = ActorSystem.DI().Props<TopDomainsActor>().WithRouter(FromConfig.Instance);
-            //_topDomainsActorRef =
-            //    ActorSystem.ActorOf(topDomainsActorProps, "TopDomainsActor");
+            _logger = Context.GetLogger();
         }
 
         public void Run()
@@ -235,8 +156,12 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
         private void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
+            //Making the executive decision not to process & count tweets with no text command.
             if (!string.IsNullOrEmpty(e.Tweet.Text))
+            {
+                var newTweet = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1);
                 _mainActorRef.Tell(e.Tweet.Text);
+            }
         }
 
         public void Stop()
@@ -248,7 +173,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
             _logger.Debug("Stop Finished.");
 
-            TweetStatistics.EndDateTime = new TimeSpan(DateTime.Now.Ticks);
+            _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(null, DateTime.Now.Ticks));
         }
     }
 }

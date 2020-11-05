@@ -3,11 +3,11 @@ using JackIsBack.NetCoreLibrary.Interfaces;
 
 namespace JackIsBack.NetCoreLibrary.Commands
 {
-    public class ChangeTweetQuantityCommand : ICommand
+    public class ChangeTotalNumberOfTweetsMessage : ICommand
     {
         private readonly Operation _operation;
         private readonly int _amount;
-        public ChangeTweetQuantityCommand(Operation operation, int amount)
+        public ChangeTotalNumberOfTweetsMessage(Operation operation, int amount)
         {
             _operation = operation;
             _amount = amount;

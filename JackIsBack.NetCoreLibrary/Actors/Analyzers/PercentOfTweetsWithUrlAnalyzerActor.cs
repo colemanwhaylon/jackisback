@@ -4,23 +4,22 @@ using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
 {
-    public class TotalNumberOfTweetsAnalyzerActor : ReceiveActor
+    public class PercentOfTweetsWithUrlAnalyzerActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
-        public TotalNumberOfTweetsAnalyzerActor()
+        public PercentOfTweetsWithUrlAnalyzerActor()
         {
-            _logger.Debug("TotalNumberOfTweetsAnalyzerActor created.");
+            _logger.Debug("PercentOfTweetsWithUrlAnalyzerActor created.");
 
             Receive<string>(AnalyzeTwitterMessage);
         }
 
         private void AnalyzeTwitterMessage(string text)
         {
-            _logger.Debug($"TotalNumberOfTweetsAnalyzerActor is analyzing tweet message: {text}");
+            _logger.Debug($"PercentOfTweetsWithUrlAnalyzerActor  is analyzing tweet message: {text}");
 
             Context.ActorSelection(SharedStrings.TweetStatisticsActorPath).Tell(text);
             Context.Self.Tell(PoisonPill.Instance);
         }
     }
-
 }

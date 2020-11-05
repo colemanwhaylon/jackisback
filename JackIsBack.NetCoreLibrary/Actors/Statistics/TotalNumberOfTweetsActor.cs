@@ -9,6 +9,8 @@ namespace JackIsBack.NetCoreLibrary.Actors
     public class TotalNumberOfTweetsActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
+        private int _count = 0;
+
         public TotalNumberOfTweetsActor()
         {
             _logger.Debug("TotalNumberOfTweetsActor created.");
@@ -17,7 +19,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
         private void HandleTwitterMessageAsync(MyTweetDTO tweet)
         {
-            var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
+            var command = new ChangeTotalNumberOfTweetsMessage(operation: Operation.Increase, 1);
             Context.ActorSelection("akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor").Tell(command);
         }
     }

@@ -18,20 +18,20 @@ namespace JackIsBack.NetCoreLibrary.Commands
 
         public void Execute()
         {
-            var interval =new TimeSpan( DateTime.Now.Subtract(TweetStatistics.StartDateTime).Ticks);
-            var totalTweets = _amount + TweetStatistics.TotalTweetCount;
-            var avgTweetsPerHour = totalTweets / interval.TotalHours;
-            var avgTweetsPerMinute = totalTweets / interval.TotalMinutes;
-            var avgTweetsPerSecond = totalTweets / interval.TotalSeconds;
+            //var interval =  new TimeSpan(DateTime.Now.Subtract(TweetStatistics.StartDateTime).Ticks);
+            //var totalTweets = _amount + TweetStatistics.TotalTweetCount;
+            //var avgTweetsPerHour = totalTweets / interval.TotalHours;
+            //var avgTweetsPerMinute = totalTweets / interval.TotalMinutes;
+            //var avgTweetsPerSecond = totalTweets / interval.TotalSeconds;
 
-            TweetStatistics.AverageTweetsPerHour = (long)avgTweetsPerHour;
-            TweetStatistics.AverageTweetsPerMinute = (long)avgTweetsPerMinute;
-            TweetStatistics.AverageTweetsPerSecond = (long)avgTweetsPerSecond;
+            //TweetStatistics.AverageTweetsPerHour = (long)avgTweetsPerHour;
+            //TweetStatistics.AverageTweetsPerMinute = (long)avgTweetsPerMinute;
+            //TweetStatistics.AverageTweetsPerSecond = (long)avgTweetsPerSecond;
         }
 
         public void Undo()
         {
-            
+
         }
 
         public override string ToString()
