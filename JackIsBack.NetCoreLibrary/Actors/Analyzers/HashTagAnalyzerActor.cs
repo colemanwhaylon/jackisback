@@ -17,7 +17,8 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug($"HashTagAnalyzerActor is analyzing tweet message: {text}");
 
-            Context.ActorSelection("/user/TweetGenerator/TweetStatisticsActor").Tell(text);
+            Context.ActorSelection("/user/TweetGeneratorActor/TweetStatisticsActor").Tell(text);
+            Context.Self.Tell(PoisonPill.Instance);
         }
     }
 }

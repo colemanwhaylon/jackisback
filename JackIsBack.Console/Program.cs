@@ -26,7 +26,7 @@ namespace JackIsBack.Console
                 ActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
                 System.Console.WriteLine("Started Main()!");
 
-                ActorSystem.ActorOf<TweetGenerator>("TweetGenerator").Tell("Run");
+                ActorSystem.ActorOf<TweetGeneratorActor>("TweetGeneratorActor").Tell("Run");
 
                 await ActorSystem.WhenTerminated.ConfigureAwait(false);
             }
@@ -36,8 +36,7 @@ namespace JackIsBack.Console
             }
             finally
             {
-                ActorSystem.ActorOf<TweetGenerator>().Tell("Stop");
-
+                ActorSystem.ActorOf<TweetGeneratorActor>().Tell("Stop");
 
                 ActorSystem.Terminate();
 

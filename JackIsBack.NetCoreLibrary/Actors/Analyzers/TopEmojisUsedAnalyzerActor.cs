@@ -17,7 +17,8 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug($"TopEmojisUsedAnalyzerActor is analyzing tweet message: {text}");
 
-            Context.ActorSelection("/user/TweetGenerator/TweetAverageAnalyzerActor").Tell(text);
+            Context.ActorSelection("/user/TweetGeneratorActor/TweetAverageAnalyzerActor").Tell(text);
+            Context.Self.Tell(PoisonPill.Instance);
         }
     }
 }

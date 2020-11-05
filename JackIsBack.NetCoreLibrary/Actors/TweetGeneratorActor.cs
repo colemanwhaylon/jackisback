@@ -1,18 +1,16 @@
-﻿using Akka.Actor;
+﻿using System;
+using System.Collections.Generic;
+using Akka.Actor;
 using Akka.DI.AutoFac;
 using Akka.DI.Core;
 using Akka.Event;
+using Akka.Routing;
 using Akka.Util.Internal;
 using Autofac;
 using AutoMapper;
-using JackIsBack.NetCoreLibrary.Actors;
 using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Akka.Routing;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
 using Tweetinvi.Events;
@@ -20,9 +18,9 @@ using Tweetinvi.Models;
 using Tweetinvi.Models.DTO;
 using Tweetinvi.Streaming;
 
-namespace JackIsBack.NetCoreLibrary
+namespace JackIsBack.NetCoreLibrary.Actors
 {
-    public class TweetGenerator : ReceiveActor, ITweetGenerator
+    public class TweetGeneratorActor : ReceiveActor, ITweetGenerator
     {
         private ILoggingAdapter _logger;
         private static ActorSystem ActorSystem;
@@ -37,7 +35,7 @@ namespace JackIsBack.NetCoreLibrary
 
         private bool _isInitialized = false;
 
-        public TweetGenerator()
+        public TweetGeneratorActor()
         {
             Receive<string>(HandleReceivedTweet);
         }
@@ -107,7 +105,7 @@ namespace JackIsBack.NetCoreLibrary
 
             Serilog.Log.Logger.Information("TwitterStatisticsActorSystem created");
 
-            builder.RegisterType<TweetGenerator>()
+            builder.RegisterType<TweetGeneratorActor>()
                 .As<ITweetGenerator>();
 
             //Register All Actors
@@ -145,9 +143,13 @@ namespace JackIsBack.NetCoreLibrary
         private void InitializeActorSystemAnActors()
         {
             // Init MainActor
-            _mainActorRef = Context.ActorOf(Context.DI().Props<MainActor>(), "MainActor");
-
+            //_mainActorRef = Context.ActorOf(Context.DI().Props<MainActor>().WithRouter(new RoundRobinPool(10, new DefaultResizer(40, 60, 1))), "MainActor");
             
+            //todo:either which way these two statements worked with my configuration in app.config
+            //_mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
+            _mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
+
+
             _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
             _hashTagAnalyzerActorRef = Context.ActorOf(Context.DI().Props<HashTagAnalyzerActor>(), "HashTagAnalyzerActor");
             _topEmojisUsedAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");

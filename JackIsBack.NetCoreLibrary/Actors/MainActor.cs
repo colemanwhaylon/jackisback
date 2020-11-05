@@ -71,6 +71,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _logger.Debug($"MainActor received this tweet message now: {message}");
 
             _routerForAllAnalyzers.Tell(message);
+            _routerForAllAnalyzers.Tell(PoisonPill.Instance);
             //_hashTagAnalyzerActorRef.Tell(message);
         }
     }
