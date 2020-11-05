@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.Commands;
+using JackIsBack.NetCoreLibrary.Messages;
 using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 
@@ -9,18 +9,31 @@ namespace JackIsBack.NetCoreLibrary.Actors
     public class TotalNumberOfTweetsActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
-        private int _count = 0;
+        private int _totalNumberOfTweets = 0;
 
         public TotalNumberOfTweetsActor()
         {
             _logger.Debug("TotalNumberOfTweetsActor created.");
-            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<ChangeTotalNumberOfTweetsMessage>(HandleChangeTotalNumberOfTweetsMessage);
         }
 
-        private void HandleTwitterMessageAsync(MyTweetDTO tweet)
+        private void HandleChangeTotalNumberOfTweetsMessage(ChangeTotalNumberOfTweetsMessage message)
         {
-            var command = new ChangeTotalNumberOfTweetsMessage(operation: Operation.Increase, 1);
-            Context.ActorSelection("akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor").Tell(command);
+            switch (message.Operation)
+            {
+                case Operation.Increase:
+                    _totalNumberOfTweets += message.Total;
+                    break;
+                case Operation.Decrease:
+                    _totalNumberOfTweets -= message.Total;
+                    break;
+            }
+
+            if (message.NeedsResponse)
+            {
+                var retVal = new ChangeTotalNumberOfTweetsMessage(message.Operation, message.Total, _totalNumberOfTweets, message.NeedsResponse);
+                Sender.Tell(retVal);
+            }
         }
     }
 }

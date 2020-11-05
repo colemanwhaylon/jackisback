@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Akka.Actor;
 using Akka.Event;
 using System.Linq;
@@ -6,13 +7,19 @@ using System.Collections;
 using Akka.DI.Core;
 using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using JackIsBack.NetCoreLibrary.Commands;
+using JackIsBack.NetCoreLibrary.Messages;
+using ChangeTotalNumberOfTweetsMessage = JackIsBack.NetCoreLibrary.Commands.ChangeTotalNumberOfTweetsMessage;
 
 namespace JackIsBack.NetCoreLibrary.Actors
 {
     public class TweetStatisticsActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
+        private TimeSpan _startDateTime = TimeSpan.Zero;
+        private TimeSpan _endDateTime  = TimeSpan.Zero;
+
         //Initialize Analyzer Actors
+        private IActorRef _totalNumberOfTweetsActorRef;
         private IActorRef _topHashTagsAnalyzerActorRef;
         private IActorRef _topEmojisUsedAnalyzerActorRef;
         private IActorRef _tweetAverageAnalyzerActorRef;
@@ -32,15 +39,16 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _topDomainsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopDomainsAnalyzerActor>(), "TopDomainsAnalyzerActor");
             _topEmojisUsedAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
             _topHashTagsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
+            _totalNumberOfTweetsActorRef = Context.ActorOf(Context.DI().Props<TotalNumberOfTweetsActor>(), "TotalNumberOfTweetsActor");
             _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
 
+            Receive<TimeKeeperActorMessage>(HandleTimeKeeperActorMessage);
+        }
 
-
-
-            Receive<ChangeTotalNumberOfTweetsMessage>(HandleIncreaseTweetCountCommand);
-            Receive<UpdateTweetAverageCommand>(HandleTweetAverageCommand);
-            Receive<UpdateHashTagsCommand>(HandleUpdateHashTagsCommand);
-            Receive<string>(HandleTweet);
+        private void HandleTimeKeeperActorMessage(TimeKeeperActorMessage message)
+        {
+            _startDateTime = message.StartDateTime;
+            _endDateTime = message.EndDateTime;
         }
 
         private void HandleTweet(string message)
@@ -80,13 +88,6 @@ namespace JackIsBack.NetCoreLibrary.Actors
                           $"\tTweetStatistics.AverageTweetsPerSecond: {TweetStatistics.AverageTweetsPerSecond}");
         }
 
-        private void HandleIncreaseTweetCountCommand(ChangeTotalNumberOfTweetsMessage command)
-        {
-            command.Execute();
-
-            //_logger.Debug($"Command: {command.ToString()}");
-            _logger.Debug($"TweetStatistics.TotalTweetCount: {TweetStatistics.TotalTweetCount}");
-        }
     }
 
 }

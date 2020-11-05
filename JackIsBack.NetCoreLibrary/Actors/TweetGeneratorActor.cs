@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.DI.AutoFac;
 using Akka.DI.Core;
 using Akka.Event;
@@ -12,6 +10,8 @@ using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
 using Serilog;
+using System;
+using JackIsBack.NetCoreLibrary.Utility;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
 using Tweetinvi.Events;
@@ -38,11 +38,17 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
             // Init MainActor
             //_mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
-
             _mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
             _tweetStatisticsActorRef = Context.ActorOf(Props.Create<TweetStatisticsActor>(), "TweetStatisticsActor");
+            _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(DateTime.Now.Ticks, null));
 
             Receive<TweetGeneratorActorCommand>(HandleTweetGeneratorActorCommand);
+            Receive<ChangeTotalNumberOfTweetsMessage>(HandleChangeTotalNumberOfTweetsMessage);
+        }
+
+        private void HandleChangeTotalNumberOfTweetsMessage(ChangeTotalNumberOfTweetsMessage message)
+        {
+            _logger.Debug($"Total Tweet NewTotal = {message.NewTotal}");
         }
 
         private void HandleTweetGeneratorActorCommand(TweetGeneratorActorCommand command)
@@ -60,7 +66,6 @@ namespace JackIsBack.NetCoreLibrary.Actors
         {
             try
             {
-                _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(DateTime.Now.Ticks, null));
                 InitializeDIContainer();
             }
             catch (Exception exception)
@@ -126,7 +131,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             builder.RegisterType<ChangeTotalNumberOfTweetsMessage>();
             builder.RegisterType<TimeKeeperActorMessage>();
 
-            ///AutoMapper Mapping types:
+            //AutoMapper Mapping types:
             builder.RegisterType<TweetDTO>();
             var config = new MapperConfiguration(cfg =>
             {
@@ -154,13 +159,18 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _logger.Debug("Run Finished.");
         }
 
-        private void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
+        private async void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
             //Making the executive decision not to process & count tweets with no text command.
             if (!string.IsNullOrEmpty(e.Tweet.Text))
             {
-                var newTweet = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1);
-                _mainActorRef.Tell(e.Tweet.Text);
+                var newTweet = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1, true);
+                //ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Tell(newTweet);
+
+                var result = await ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Ask(newTweet);
+
+                _logger.Debug($"New Total: {result}");
+                //_mainActorRef.Tell(e.Tweet.Text);
             }
         }
 

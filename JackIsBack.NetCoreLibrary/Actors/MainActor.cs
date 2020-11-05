@@ -49,7 +49,8 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
             _routerForAllAnalyzers.Tell(message);
             
-            Context.Self.Tell(PoisonPill.Instance);
+            //main actor shouldn't kill itself 
+            //Context.Self.Tell(PoisonPill.Instance);
         }
     }
 }

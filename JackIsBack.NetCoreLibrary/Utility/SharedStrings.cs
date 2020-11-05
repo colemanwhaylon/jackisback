@@ -14,7 +14,7 @@ namespace JackIsBack.NetCoreLibrary.Utility
         public static string TopDomainsActorPath {get; private set;} = "";
         public static string TopEmojisUsedActorPath {get; private set;} = "";
         public static string TopHashTagsActorPath {get; private set;} = "";
-        public static string TotalNumberOfTweetsActorPath {get; private set;} = "";
+        public static string TotalNumberOfTweetsActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/TotalNumberOfTweetsActor";
         public static string TweetAverageActorPath {get; private set;} = "";
         public static string TweetGeneratorActorPath {get; private set;} = "";
         public static string TweetStatisticsActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor";
