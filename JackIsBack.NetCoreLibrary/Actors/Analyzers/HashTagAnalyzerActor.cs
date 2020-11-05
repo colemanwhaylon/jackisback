@@ -6,7 +6,6 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
     public class HashTagAnalyzerActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
-        private IActorRef _tweetStatisticsActorRef;
         public HashTagAnalyzerActor()
         {
             _logger.Debug("HashTagAnalyzerActor created.");

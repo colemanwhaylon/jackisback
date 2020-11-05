@@ -28,7 +28,6 @@ namespace JackIsBack.NetCoreLibrary.Actors
         {
             command.Execute();
 
-            
             _logger.Debug($"TweetStatistics.HashTags key count: {TweetStatistics.HashTags.Keys.Count}");
             TweetStatistics.HashTags.ToList().Sort((x,y)=> x.Value.CompareTo(y.Value));
             var list = TweetStatistics.HashTags.OrderByDescending((x) => x.Value).Take(5);
