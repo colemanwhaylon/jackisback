@@ -1,10 +1,9 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.Messages;
-using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
+using JackIsBack.NetCoreLibrary.Messages;
 
-namespace JackIsBack.NetCoreLibrary.Actors
+namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
     public class TotalNumberOfTweetsActor : ReceiveActor
     {

@@ -1,10 +1,9 @@
-﻿using Akka.Actor;
+﻿using System.Collections.Generic;
+using Akka.Actor;
 using Akka.Event;
 using JackIsBack.NetCoreLibrary.Commands;
-using System.Collections.Generic;
-using JackIsBack.NetCoreLibrary.Utility;
 
-namespace JackIsBack.NetCoreLibrary.Actors
+namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
     public class TopHashTagsActor : ReceiveActor
     {

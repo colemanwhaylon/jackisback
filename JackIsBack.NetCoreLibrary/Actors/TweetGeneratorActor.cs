@@ -11,6 +11,8 @@ using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
 using Serilog;
 using System;
+using JackIsBack.NetCoreLibrary.Actors.Statistics;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Utility;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
@@ -132,7 +134,9 @@ namespace JackIsBack.NetCoreLibrary.Actors
             builder.RegisterType<TimeKeeperActorMessage>();
 
             //AutoMapper Mapping types:
+            builder.RegisterType<MyTweetDTO>().As<IMyTweetDTO>();
             builder.RegisterType<TweetDTO>();
+
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<IUser, IUserDTO>();
@@ -159,18 +163,25 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _logger.Debug("Run Finished.");
         }
 
-        private async void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
+        private void SampleStreamOnTweetReceived(object? sender, TweetReceivedEventArgs e)
         {
             //Making the executive decision not to process & count tweets with no text command.
             if (!string.IsNullOrEmpty(e.Tweet.Text))
             {
-                var newTweet = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1, true);
-                //ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Tell(newTweet);
+                //Increment Tweet Count
+                var incrementTweetCountMessage = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1, false);
+                ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Tell(incrementTweetCountMessage);
 
-                var result = await ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Ask(newTweet);
+                // Instantiate instance of IMyTweetDTO and pass to MainActor
+                var myTweetDto = _container.Resolve<IMyTweetDTO>().AsInstanceOf<MyTweetDTO>();
+                myTweetDto.CreatedBy = e.Tweet.CreatedBy.ScreenName ?? string.Empty;
+                myTweetDto.CreatedById = e.Tweet.CreatedBy.Id;
+                myTweetDto.TweetId = e.Tweet.Id;
+                myTweetDto.Tweet = (e.Tweet.Text.Length > 140) ?
+                    e.Tweet.Text.Substring(0, 140) :
+                    e.Tweet.Text;
 
-                _logger.Debug($"New Total: {result}");
-                //_mainActorRef.Tell(e.Tweet.Text);
+                _mainActorRef.Tell(myTweetDto);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
@@ -11,15 +12,30 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug("TopHashTagsAnalyzerActor created.");
 
-            Receive<string>(AnalyzeTwitterMessage);
+            Receive<IMyTweetDTO>(AnalyzeTwitterMessage);
         }
 
-        private void AnalyzeTwitterMessage(string text)
+        private void AnalyzeTwitterMessage(IMyTweetDTO message)
         {
-            _logger.Debug($"TopHashTagsAnalyzerActor is analyzing tweet message: {text}");
+            _logger.Debug($"TopHashTagsAnalyzerActor is analyzing tweet message: {message}");
 
-            Context.ActorSelection(SharedStrings.TweetStatisticsActorPath).Tell(text);
-            Context.Self.Tell(PoisonPill.Instance);
+            Context.ActorSelection(SharedStrings.TweetStatisticsActorPath).Tell(message);
+            //Context.Self.Tell(PoisonPill.Instance);
         }
+
+        //private void HandleUpdateHashTagsCommand(UpdateHashTagsCommand command)
+        //{
+        //    _logger.Debug($"TweetStatistics.HashTags key count: {TweetStatistics.HashTags.Keys.Count}");
+        //    TweetStatistics.HashTags.ToList().Sort((x, y) => x.Value.CompareTo(y.Value));
+        //    var list = TweetStatistics.HashTags.OrderByDescending((x) => x.Value).Take(5);
+        //    _logger.Debug($"TweetStatistics.HashTags top 5: ");
+        //    var count = 0;
+        //    foreach (var item in list)
+        //    {
+        //        count++;
+        //        _logger.Debug($"#{count}: {item}");
+        //    }
+
+        //}
     }
 }

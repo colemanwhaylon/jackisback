@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Akka.Actor;
-using Akka.DI.Core;
+﻿using Akka.Actor;
 using Akka.Event;
 using Akka.Routing;
-using JackIsBack.NetCoreLibrary.Actors.Analyzers;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors
@@ -12,18 +9,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
     public class MainActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
-        //Analyzers
         private readonly IActorRef _routerForAllAnalyzers;
-
-        private readonly IActorRef _hashTagAnalyzerActorRef;
-        private readonly IActorRef _totalNumberOfTweetsActorRef;
-        private readonly IActorRef _tweetAverageActorRef;
-        private readonly IActorRef _topEmojisUsedActorRef;
-        private readonly IActorRef _percentOfTweetsContainingEmojisActorRef;
-        private readonly IActorRef _topHashTagsActorRef;
-        private readonly IActorRef _percentOfTweetsWithUrlActorRef;
-        private readonly IActorRef _percentOfTweetsWithPhotoUrlActorRef;
-        private readonly IActorRef _topDomainsActorRef;
 
         public MainActor()
         {
@@ -37,20 +23,15 @@ namespace JackIsBack.NetCoreLibrary.Actors
                         SharedStrings.TopDomainsAnalyzerActorPath,
                         SharedStrings.TopEmojisUsedAnalyzerActorPath,
                         SharedStrings.TopHashTagsAnalyzerActorPath,
-                        SharedStrings.TotalNumberOfTweetsAnalyzerActorPath,
                         SharedStrings.TweetAverageAnalyzerActorPath)));
 
-            Receive<string>(HandleTweet);
+            Receive<IMyTweetDTO>(HandleTweet);
         }
 
-        private void HandleTweet(string message)
+        private void HandleTweet(IMyTweetDTO message)
         {
-            _logger.Debug($"MainActor received this tweet message now: {message}");
-
+            _logger.Debug($"MainActor received this tweet message now: {message.Tweet}");
             _routerForAllAnalyzers.Tell(message);
-            
-            //main actor shouldn't kill itself 
-            //Context.Self.Tell(PoisonPill.Instance);
         }
     }
 }

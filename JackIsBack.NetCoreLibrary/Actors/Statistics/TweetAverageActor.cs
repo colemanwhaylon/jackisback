@@ -3,7 +3,7 @@ using Akka.Event;
 using JackIsBack.NetCoreLibrary.Commands;
 using JackIsBack.NetCoreLibrary.DTO;
 
-namespace JackIsBack.NetCoreLibrary.Actors
+namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
     public class TweetAverageActor : ReceiveActor
     {

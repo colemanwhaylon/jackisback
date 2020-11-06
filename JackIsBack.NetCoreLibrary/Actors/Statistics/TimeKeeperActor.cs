@@ -3,7 +3,7 @@ using Akka.Actor;
 using Akka.Event;
 using JackIsBack.NetCoreLibrary.Messages;
 
-namespace JackIsBack.NetCoreLibrary.Actors
+namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
     public class TimeKeeperActor : ReceiveActor
     {
