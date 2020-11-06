@@ -1,32 +1,24 @@
-﻿using System.Threading.Tasks;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
     public class PercentOfTweetsWithUrlActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private double PercentOfTweetsWithPhotoUrl { get; set; } 
+        private double PercentOfTweetsWithPhotoUrl { get; set; } = 0.0;
 
-        public PercentOfTweetsWithUrlActor(double a)
+        public PercentOfTweetsWithUrlActor()
         {
-            PercentOfTweetsWithPhotoUrl = a;
             _logger.Info("PercentOfTweetsWithUrlActor created.");
-            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(MyTweetDTO tweet)
+        private void HandleTwitterMessageAsync(IMyTweetDTO message)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                //var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
-                //var commandManager = new CommandManager();
-                //commandManager.Invoke(command);
+            _logger.Debug($"PercentOfTweetsWithUrlActor got message: {message} ");
 
-                System.Console.WriteLine($"PercentOfTweetsWithUrlActor wrote " + tweet);
-            });
         }
     }
 }

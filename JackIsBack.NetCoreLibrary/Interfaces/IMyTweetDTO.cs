@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace JackIsBack.NetCoreLibrary.DTO
+namespace JackIsBack.NetCoreLibrary.Interfaces
 {
     public interface IMyTweetDTO
     {

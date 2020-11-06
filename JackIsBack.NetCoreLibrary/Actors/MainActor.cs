@@ -2,6 +2,7 @@
 using Akka.Event;
 using Akka.Routing;
 using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors

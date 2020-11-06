@@ -2,13 +2,9 @@
 using Akka.DI.Core;
 using Akka.Event;
 using JackIsBack.NetCoreLibrary.Actors.Analyzers;
-using JackIsBack.NetCoreLibrary.Commands;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Actors.Statistics;
 using JackIsBack.NetCoreLibrary.Messages;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using JackIsBack.NetCoreLibrary.Actors.Statistics;
 
 namespace JackIsBack.NetCoreLibrary.Actors
 {
@@ -35,7 +31,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private IActorRef _percentOfTweetsWithPhotoUrlActorRef;
         private IActorRef _percentOfTweetsContainingEmojisActorRef;
         private IActorRef _percentOfTweetsWithUrlActorRef;
-
+        private IActorRef _totalNumberOfTweetsActorRef;
 
         public TweetStatisticsActor()
         {
@@ -59,9 +55,19 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _topEmojisUsedActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedActor>(), "TopEmojisUsedActor");
             _topHashTagsActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsActor>(), "TopHashTagsActor");
             _tweetAverageActorRef = Context.ActorOf(Context.DI().Props<TweetAverageActor>(), "TweetAverageActor");
+            _totalNumberOfTweetsActorRef = Context.ActorOf(Context.DI().Props<TotalNumberOfTweetsActor>(), "TotalNumberOfTweetsActor");
 
             // Declare messages to Receive 
             Receive<TimeKeeperActorMessage>(HandleTimeKeeperActorMessage);
+            Receive<GetAllStatisticsMessage>(HandleGetAllStatisticsMessage);
+        }
+
+        private void HandleGetAllStatisticsMessage(GetAllStatisticsMessage message)
+        {
+            _logger.Debug($"TweetStatisticsActor got message: {message}.");
+            var result = new GetAllStatisticsMessage(3);
+            _logger.Debug($"TweetStatisticsActor sending back: {result}.");
+            Context.Sender.Tell(result);
         }
 
         private void HandleTimeKeeperActorMessage(TimeKeeperActorMessage message)
@@ -70,7 +76,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _endDateTime = message.EndDateTime;
         }
 
-       //todo:Declare method that can be asked for by a client to get all statistic actor's values
+        //todo:Declare method that can be asked for by a client to get all statistic actor's values
 
     }
 }

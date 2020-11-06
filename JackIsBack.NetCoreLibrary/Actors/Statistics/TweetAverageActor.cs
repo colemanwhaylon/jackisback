@@ -1,7 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.Commands;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
@@ -12,13 +11,22 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         public TweetAverageActor()
         {
             _logger.Warning("TweetAverageActor created.");
-            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private void HandleTwitterMessageAsync(MyTweetDTO myTweetDto)
+        private void HandleTwitterMessageAsync(IMyTweetDTO message)
         {
-            var command = new UpdateTweetAverageCommand(1);
-            Context.ActorSelection("akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor").Tell(command);
+            _logger.Debug($"TweetAverageActor got message: {message} ");
+
+            //var interval =  new TimeSpan(DateTime.Now.Subtract(TweetStatistics.StartDateTime).Ticks);
+            //var totalTweets = _amount + TweetStatistics.TotalTweetCount;
+            //var avgTweetsPerHour = totalTweets / interval.TotalHours;
+            //var avgTweetsPerMinute = totalTweets / interval.TotalMinutes;
+            //var avgTweetsPerSecond = totalTweets / interval.TotalSeconds;
+
+            //TweetStatistics.AverageTweetsPerHour = (long)avgTweetsPerHour;
+            //TweetStatistics.AverageTweetsPerMinute = (long)avgTweetsPerMinute;
+            //TweetStatistics.AverageTweetsPerSecond = (long)avgTweetsPerSecond;
         }
     }
 }

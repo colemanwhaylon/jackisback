@@ -14,6 +14,15 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         {
             _logger.Debug("TotalNumberOfTweetsActor created.");
             Receive<ChangeTotalNumberOfTweetsMessage>(HandleChangeTotalNumberOfTweetsMessage);
+            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+        }
+
+        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
+        {
+            _logger.Debug($"TotalNumberOfTweetsActor got message: {message}.");
+            var newMessage = new GetTotalNumberOfTweetsMessage(_totalNumberOfTweets);
+            _logger.Debug($"TotalNumberOfTweetsActor sending newMessage: {newMessage} to {Context.Sender}.");
+            Context.Sender.Tell(newMessage);
         }
 
         private void HandleChangeTotalNumberOfTweetsMessage(ChangeTotalNumberOfTweetsMessage message)

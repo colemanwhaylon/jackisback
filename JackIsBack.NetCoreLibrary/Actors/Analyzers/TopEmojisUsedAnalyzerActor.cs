@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
@@ -19,8 +19,8 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug($"TopEmojisUsedAnalyzerActor is analyzing tweet message: {message}");
 
-            Context.ActorSelection(SharedStrings.TweetStatisticsActorPath).Tell(message);
-           // Context.Self.Tell(PoisonPill.Instance);
+            Context.ActorSelection(SharedStrings.TopEmojisUsedActorPath).Tell(message);
+            // Context.Self.Tell(PoisonPill.Instance);
         }
     }
 }

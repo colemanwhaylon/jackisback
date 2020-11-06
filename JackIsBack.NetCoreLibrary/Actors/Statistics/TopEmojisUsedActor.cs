@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
@@ -12,19 +11,13 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         public TopEmojisUsedActor()
         {
             _logger.Info("TopEmojisUsedActor created.");
-            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(MyTweetDTO tweet)
+        private void HandleTwitterMessageAsync(IMyTweetDTO message)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                //var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
-                //var commandManager = new CommandManager();
-                //commandManager.Invoke(command);
+            _logger.Debug($"TopEmojisUsedActor got message: {message} ");
 
-                System.Console.WriteLine($"TopEmojisUsedActor wrote " + tweet);
-            });
         }
     }
 }

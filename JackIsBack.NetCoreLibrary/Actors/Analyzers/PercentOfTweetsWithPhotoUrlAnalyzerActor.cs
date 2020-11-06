@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
@@ -19,7 +19,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug($"PercentOfTweetsWithPhotoUrlAnalyzerActor is analyzing tweet message: {message.Tweet}");
 
-            Context.ActorSelection(SharedStrings.TweetStatisticsActorPath).Tell(message);
+            Context.ActorSelection(SharedStrings.PercentOfTweetsWithPhotoUrlActorPath).Tell(message);
             //Context.Self.Tell(PoisonPill.Instance);
         }
     }

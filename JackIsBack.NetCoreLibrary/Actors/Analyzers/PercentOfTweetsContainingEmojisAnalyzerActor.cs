@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
@@ -11,7 +11,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         public PercentOfTweetsContainingEmojisAnalyzerActor()
         {
             _logger.Debug("PercentOfTweetsContainingEmojisAnalyzerActor created.");
-            
+
             Receive<IMyTweetDTO>(AnalyzeTwitterMessage);
         }
 
@@ -19,7 +19,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug($"PercentOfTweetsContainingEmojisAnalyzerActor is analyzing tweet message: {message.Tweet}");
 
-            Context.ActorSelection(SharedStrings.TweetStatisticsActorPath).Tell(message);
+            Context.ActorSelection(SharedStrings.PercentOfTweetsContainingEmojisActorPath).Tell(message);
             //Context.Self.Tell(PoisonPill.Instance);
         }
     }

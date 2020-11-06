@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.DTO;
+using JackIsBack.NetCoreLibrary.Interfaces;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
@@ -13,19 +12,12 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         public PercentOfTweetsContainingEmojisActor()
         {
             _logger.Info("PercentOfTweetsContainingEmojisActor created.");
-            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 
-        private async void HandleTwitterMessageAsync(MyTweetDTO tweet)
+        private void HandleTwitterMessageAsync(IMyTweetDTO message)
         {
-            await Task.Factory.StartNew(() =>
-            {
-                //var command = new ChangeTweetQuantityCommand(operation: Operation.Increase, 1);
-                //var commandManager = new CommandManager();
-                //commandManager.Invoke(command);
-
-                System.Console.WriteLine($"PercentOfTweetsContainingEmojisActor wrote " + tweet);
-            });
+            _logger.Debug($"PercentOfTweetsContainingEmojisActor got message: {message} ");
         }
     }
 }

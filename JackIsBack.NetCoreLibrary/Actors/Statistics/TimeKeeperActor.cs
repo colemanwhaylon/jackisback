@@ -1,7 +1,7 @@
-﻿using System;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Event;
 using JackIsBack.NetCoreLibrary.Messages;
+using System;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {

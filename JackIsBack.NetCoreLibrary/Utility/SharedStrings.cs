@@ -8,14 +8,14 @@ namespace JackIsBack.NetCoreLibrary.Utility
     {
         // Actors
         public static string MainActorPath {get; private set;} = "/user/TweetGeneratorActor/MainActor";
-        public static string PercentOfTweetsContainingEmojisActorPath {get; private set;} = "";
-        public static string PercentOfTweetsWithPhotoUrlActorPath {get; private set;} = "";
-        public static string PercentOfTweetsWithUrlActorPath {get; private set;} = "";
-        public static string TopDomainsActorPath {get; private set;} = "";
-        public static string TopEmojisUsedActorPath {get; private set;} = "";
-        public static string TopHashTagsActorPath {get; private set;} = "";
+        public static string PercentOfTweetsContainingEmojisActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/PercentOfTweetsContainingEmojisActor";
+        public static string PercentOfTweetsWithPhotoUrlActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/PercentOfTweetsWithPhotoUrlActor";
+        public static string PercentOfTweetsWithUrlActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/PercentOfTweetsWithUrlActor";
+        public static string TopDomainsActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/TopDomainsActor";
+        public static string TopEmojisUsedActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/TopEmojisUsedActor";
+        public static string TopHashTagsActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/TopHashTagsActor";
         public static string TotalNumberOfTweetsActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/TotalNumberOfTweetsActor";
-        public static string TweetAverageActorPath {get; private set;} = "";
+        public static string TweetAverageActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor/TweetAverageActor";
         public static string TweetGeneratorActorPath {get; private set;} = "/user/TweetGeneratorActor";
         public static string TweetStatisticsActorPath {get; private set;} = "/user/TweetGeneratorActor/TweetStatisticsActor";
 

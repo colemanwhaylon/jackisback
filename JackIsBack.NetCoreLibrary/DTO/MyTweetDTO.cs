@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JackIsBack.NetCoreLibrary.Interfaces;
 
 namespace JackIsBack.NetCoreLibrary.DTO
 {
