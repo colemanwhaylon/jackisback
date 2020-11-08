@@ -41,7 +41,8 @@ namespace JackIsBack.NetCoreLibrary.Actors
             // Init MainActor
             //_mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
             _mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
-            _tweetStatisticsActorRef = Context.ActorOf(Props.Create<TweetStatisticsActor>(), "TweetStatisticsActor");
+            _tweetStatisticsActorRef = Context.System.ActorOf(Props.Create<TweetStatisticsActor>(), "TweetStatisticsActor");
+
             _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(DateTime.Now.Ticks, null));
 
             Receive<TweetGeneratorActorCommand>(HandleTweetGeneratorActorCommand);
@@ -169,8 +170,8 @@ namespace JackIsBack.NetCoreLibrary.Actors
             if (!string.IsNullOrEmpty(e.Tweet.Text))
             {
                 //Increment Tweet Count
-                var incrementTweetCountMessage = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1, false);
-                ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Tell(incrementTweetCountMessage);
+                var changeTotalNumberOfTweetsMessage = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1, false);
+                ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Tell(changeTotalNumberOfTweetsMessage);
 
                 // Instantiate instance of IMyTweetDTO and pass to MainActor
                 var myTweetDto = _container.Resolve<IMyTweetDTO>().AsInstanceOf<MyTweetDTO>();

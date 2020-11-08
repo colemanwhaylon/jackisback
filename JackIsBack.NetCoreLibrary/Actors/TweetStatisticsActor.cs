@@ -58,8 +58,8 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _totalNumberOfTweetsActorRef = Context.ActorOf(Context.DI().Props<TotalNumberOfTweetsActor>(), "TotalNumberOfTweetsActor");
 
             // Declare messages to Receive 
-            Receive<TimeKeeperActorMessage>(HandleTimeKeeperActorMessage);
             Receive<GetAllStatisticsMessage>(HandleGetAllStatisticsMessage);
+            Receive<TimeKeeperActorMessage>(HandleTimeKeeperActorMessage);
         }
 
         private void HandleGetAllStatisticsMessage(GetAllStatisticsMessage message)
@@ -74,6 +74,12 @@ namespace JackIsBack.NetCoreLibrary.Actors
         {
             _startDateTime = message.StartDateTime;
             _endDateTime = message.EndDateTime;
+        }
+
+        public override void AroundPreStart()
+        {
+            base.AroundPreStart();
+            _logger.Debug("AroundPreStart() executed HERE NOW!");
         }
 
         //todo:Declare method that can be asked for by a client to get all statistic actor's values

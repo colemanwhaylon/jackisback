@@ -17,7 +17,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 
         private void HandleTwitterMessageAsync(IMyTweetDTO message)
         {
-            _logger.Debug($"PercentOfTweetsContainingEmojisActor got message: {message} ");
+            _logger.Debug($"PercentOfTweetsContainingEmojisActor got message: {message.Tweet} ");
         }
     }
 }
