@@ -11,7 +11,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 
         public PercentOfTweetsContainingEmojisActor()
         {
-            _logger.Info("PercentOfTweetsContainingEmojisActor created.");
+            _logger.Debug("PercentOfTweetsContainingEmojisActor created.");
             Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 

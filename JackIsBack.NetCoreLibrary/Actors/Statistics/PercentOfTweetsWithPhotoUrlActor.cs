@@ -11,7 +11,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 
         public PercentOfTweetsWithPhotoUrlActor()
         {
-            _logger.Info("PercentOfTweetsWithPhotoUrlActor created.");
+            _logger.Debug("PercentOfTweetsWithPhotoUrlActor created.");
             Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 

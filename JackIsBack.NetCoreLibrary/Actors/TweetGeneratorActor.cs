@@ -32,7 +32,9 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private static IDependencyResolver _resolver;
         private static IActorRef _mainActorRef;
         private static IActorRef _tweetStatisticsActorRef;
+        private static IActorRef _totalNumberOfTweetsActorRef;
         private bool _isInitialized = false;
+        private static GetAllStatisticsMessage Statistics;
 
         public TweetGeneratorActor()
         {
@@ -42,6 +44,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             //_mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
             _mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
             _tweetStatisticsActorRef = Context.System.ActorOf(Props.Create<TweetStatisticsActor>(), "TweetStatisticsActor");
+            _totalNumberOfTweetsActorRef = Context.System.ActorOf(Props.Create<TotalNumberOfTweetsActor>(), "TotalNumberOfTweetsActor"); 
 
             _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(DateTime.Now.Ticks, null));
 
@@ -103,13 +106,10 @@ namespace JackIsBack.NetCoreLibrary.Actors
                 twitterInfo.Secrets.AccessToken, twitterInfo.Secrets.AccessTokenSecret);
 
             builder.RegisterInstance(twitterClient).As<TwitterClient>();
-
-            Serilog.Log.Logger.Information("TwitterStatisticsActorSystem created");
-
             builder.RegisterType<TweetGeneratorActor>().As<ITweetGenerator>();
 
             //Register All Actors
-            builder.RegisterType<TotalNumberOfTweetsActor>();
+            builder.RegisterType<TotalNumberOfTweetsActor>().InstancePerLifetimeScope();
             builder.RegisterType<TweetAverageActor>();
             builder.RegisterType<TopEmojisUsedActor>();
             builder.RegisterType<PercentOfTweetsContainingEmojisActor>();
@@ -171,7 +171,8 @@ namespace JackIsBack.NetCoreLibrary.Actors
             {
                 //Increment Tweet Count
                 var changeTotalNumberOfTweetsMessage = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1, false);
-                ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Tell(changeTotalNumberOfTweetsMessage);
+
+                _totalNumberOfTweetsActorRef.Tell(changeTotalNumberOfTweetsMessage);
 
                 // Instantiate instance of IMyTweetDTO and pass to MainActor
                 var myTweetDto = _container.Resolve<IMyTweetDTO>().AsInstanceOf<MyTweetDTO>();

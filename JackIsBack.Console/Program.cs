@@ -6,6 +6,8 @@ using JackIsBack.NetCoreLibrary.Utility;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Akka.DI.Core;
+using JackIsBack.NetCoreLibrary.Actors.Statistics;
 
 namespace JackIsBack.Console
 {
@@ -15,15 +17,10 @@ namespace JackIsBack.Console
     /// kickoff results streaming to the console.  The Akka.Net's config
     /// settings drive elastic scaling and processing of all Tweets.
     /// </summary>
-    public class ProgramActor : ReceiveActor
+    public class Program
     {
         private static ActorSystem ActorSystem;
-        private static GetAllStatisticsMessage Statistics;
-
-        public ProgramActor()
-        {
-            Receive<GetAllStatisticsMessage>(HandleGetAllStatisticsMessage);
-        }
+        private static IActorRef _totalNumberOfTweetsActorRef;
 
         private void HandleGetAllStatisticsMessage(GetAllStatisticsMessage message)
         {
@@ -39,25 +36,32 @@ namespace JackIsBack.Console
                 System.Console.WriteLine("Started Main()!");
 
                 ActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
-                var programActorRef = ActorSystem.ActorOf<ProgramActor>("ProgramActor");
 
                 command = TweetGeneratorActorCommand.StartUp;
                 var tweetGeneratorActorRef = ActorSystem.ActorOf<TweetGeneratorActor>("TweetGeneratorActor");
                 tweetGeneratorActorRef.Tell(command);
+                
+                await Task.Delay(10000);
 
-                var tasks = new List<Task>();
-                GetAllStatisticsMessage retVal = null;
-                var message = new GetAllStatisticsMessage(0);
-                tasks.Add(ActorSystem.ActorSelection(SharedStrings.TweetStatisticsActorPath)
-                    .Ask<GetAllStatisticsMessage>(message));
+                var getAllStatisticsMessage = new GetAllStatisticsMessage(-1);
+                var statisticsMessage = ActorSystem
+                    .ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath)
+                    .Ask<GetAllStatisticsMessage>(getAllStatisticsMessage).Result;
 
-                Task.WhenAll(tasks).Wait();
+                System.Console.WriteLine($"Program.GetAllStatisticsMessage(): Yields = {statisticsMessage.TotalNumberOfTweets}");
 
                 await ActorSystem.WhenTerminated.ConfigureAwait(false);
+
+                //var tasks = new List<Task>();
+                //GetAllStatisticsMessage retVal = null;
+                //var message = new GetAllStatisticsMessage(0);
+                //tasks.Add(ActorSystem.ActorSelection(SharedStrings.TweetStatisticsActorPath)
+                //    .Ask<GetAllStatisticsMessage>(message));
+                //await Task.WhenAll(tasks).PipeTo(tweetGeneratorActorRef);
             }
             catch (Exception exception)
             {
-                System.Console.WriteLine($"Message: {exception.Message}\n, StackTrace: {exception.StackTrace}\n, InnerException: {exception.InnerException.Message}");
+                System.Console.WriteLine($"Message: {exception.Message}\n, StackTrace: {exception.StackTrace}\n, InnerException: {exception?.InnerException?.Message}");
             }
             finally
             {
@@ -69,7 +73,7 @@ namespace JackIsBack.Console
                 System.Console.WriteLine("Stopped ActorSystem!");
             }
 
-            System.Console.WriteLine("ProgramActor Finished!");
+            System.Console.WriteLine("Program Finished!");
             System.Console.ReadLine();
         }
 

@@ -31,7 +31,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private IActorRef _percentOfTweetsWithPhotoUrlActorRef;
         private IActorRef _percentOfTweetsContainingEmojisActorRef;
         private IActorRef _percentOfTweetsWithUrlActorRef;
-        private IActorRef _totalNumberOfTweetsActorRef;
+        //private IActorRef _totalNumberOfTweetsActorRef;
 
         public TweetStatisticsActor()
         {
@@ -55,7 +55,8 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _topEmojisUsedActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedActor>(), "TopEmojisUsedActor");
             _topHashTagsActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsActor>(), "TopHashTagsActor");
             _tweetAverageActorRef = Context.ActorOf(Context.DI().Props<TweetAverageActor>(), "TweetAverageActor");
-            _totalNumberOfTweetsActorRef = Context.ActorOf(Context.DI().Props<TotalNumberOfTweetsActor>(), "TotalNumberOfTweetsActor");
+
+            
 
             // Declare messages to Receive 
             Receive<GetAllStatisticsMessage>(HandleGetAllStatisticsMessage);

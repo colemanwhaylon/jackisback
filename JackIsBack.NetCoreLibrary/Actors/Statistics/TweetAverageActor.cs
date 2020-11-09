@@ -10,7 +10,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 
         public TweetAverageActor()
         {
-            _logger.Warning("TweetAverageActor created.");
+            _logger.Debug("TweetAverageActor created.");
             Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 

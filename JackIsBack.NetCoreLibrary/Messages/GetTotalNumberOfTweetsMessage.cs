@@ -7,5 +7,10 @@
             TotalNumberOfTweets = totalNumberOfTweets;
         }
         public int TotalNumberOfTweets { get; private set; }
+
+        public override string ToString()
+        {
+            return $"TotalNumberOfTweets: {TotalNumberOfTweets}";
+        }
     }
 }

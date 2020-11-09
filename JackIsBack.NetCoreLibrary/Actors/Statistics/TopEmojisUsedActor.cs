@@ -10,7 +10,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         private static long Count { get; set; } = 0;
         public TopEmojisUsedActor()
         {
-            _logger.Info("TopEmojisUsedActor created.");
+            _logger.Debug("TopEmojisUsedActor created.");
             Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 

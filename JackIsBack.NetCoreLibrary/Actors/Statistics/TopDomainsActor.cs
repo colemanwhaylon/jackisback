@@ -10,7 +10,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         private static long Count { get; set; } = 0;
         public TopDomainsActor()
         {
-            _logger.Info("TopDomainsActor created.");
+            _logger.Debug("TopDomainsActor created.");
             Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
         }
 

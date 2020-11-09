@@ -32,7 +32,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private void HandleTweet(IMyTweetDTO message)
         {
             _logger.Debug($"MainActor received this tweet message now: {message.Tweet}");
-            _routerForAllAnalyzers.Tell(message);
+            _routerForAllAnalyzers.Tell(message, Self);
         }
     }
 }
