@@ -60,10 +60,14 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private void HandleTweetGeneratorActorCommand(TweetGeneratorActorCommand command)
         {
             if (command == TweetGeneratorActorCommand.StartUp)
+            {
                 this.Run();
+                Sender.Tell(TweetGeneratorActorCommandResponse.StartedUp, Self);
+            }
             else if (command == TweetGeneratorActorCommand.Shutdown)
             {
                 this.Stop();
+                Sender.Tell(TweetGeneratorActorCommandResponse.ShutdownCompletely, Self);
                 this._isInitialized = false;
             }
         }

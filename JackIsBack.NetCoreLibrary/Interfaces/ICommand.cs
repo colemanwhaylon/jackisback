@@ -13,6 +13,14 @@
         Shutdown
     }
 
+    public enum TweetGeneratorActorCommandResponse
+    {
+        None,
+        StartedUp,
+        ShutdownCompletely,
+        ExceptionOccurred
+    }
+
     public interface ICommand
     {
         void Execute();
