@@ -6,14 +6,14 @@
         Decrease
     }
 
-    public enum TweetGeneratorActorCommand
+    public enum InitToggleCommandRequest
     {
         None,
         StartUp,
         Shutdown
     }
 
-    public enum TweetGeneratorActorCommandResponse
+    public enum InitToggleCommandResponse
     {
         None,
         StartedUp,
