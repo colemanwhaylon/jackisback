@@ -48,7 +48,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
             _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(DateTime.Now.Ticks, null));
 
-            Receive<TweetGeneratorActorCommand>(HandleTweetGeneratorActorCommand);
+            Receive<InitToggleCommandRequest>(HandleInitToggleCommandRequest);
             Receive<ChangeTotalNumberOfTweetsMessage>(HandleChangeTotalNumberOfTweetsMessage);
         }
 
@@ -57,17 +57,17 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _logger.Debug($"Total Tweet NewTotal = {message.NewTotal}");
         }
 
-        private void HandleTweetGeneratorActorCommand(TweetGeneratorActorCommand command)
+        private void HandleInitToggleCommandRequest(InitToggleCommandRequest command)
         {
-            if (command == TweetGeneratorActorCommand.StartUp)
+            if (command == InitToggleCommandRequest.StartUp)
             {
                 this.Run();
-                Sender.Tell(TweetGeneratorActorCommandResponse.StartedUp, Self);
+                Sender.Tell(InitToggleCommandResponse.StartedUp, Self);
             }
-            else if (command == TweetGeneratorActorCommand.Shutdown)
+            else if (command == InitToggleCommandRequest.Shutdown)
             {
                 this.Stop();
-                Sender.Tell(TweetGeneratorActorCommandResponse.ShutdownCompletely, Self);
+                Sender.Tell(InitToggleCommandResponse.ShutdownCompletely, Self);
                 this._isInitialized = false;
             }
         }

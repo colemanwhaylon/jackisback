@@ -24,10 +24,24 @@ namespace JackIsBack.Console
 
         public TwitterEngine()
         {
-            Receive<TweetGeneratorActorCommandResponse>(HandleTweetGeneratorActorCommandResponse);
+            Receive<InitToggleCommandRequest>(HandleTweetEngineActorInitToggleCommand);
+            Receive<InitToggleCommandResponse>(HandleInitToggleCommandResponse);
         }
 
-        private async void HandleTweetGeneratorActorCommandResponse(TweetGeneratorActorCommandResponse obj)
+        private void HandleInitToggleCommandResponse(InitToggleCommandResponse obj)
+        {
+            
+        }
+
+        private void HandleTweetEngineActorInitToggleCommand(InitToggleCommandRequest message)
+        {
+            _tweetGeneratorActorRef = Context.ActorOf<TweetGeneratorActor>("TweetGeneratorActor");
+            _tweetGeneratorActorRef.Ask(message).PipeTo(Sender);
+        }
+
+
+
+        private async void HandleTweetEngineXCommand(InitToggleCommandRequest message)
         {
             var getAllStatisticsMessage = new GetAllStatisticsMessage(-1);
             var statisticsMessage = ActorSystem
@@ -46,38 +60,6 @@ namespace JackIsBack.Console
             System.Console.WriteLine($"Total Tweet Count = {message.TotalNumberOfTweets}");
         }
 
-        public static async Task<TweetGeneratorActorCommandResponse> Execute(string[] args)
-        {
-            var command = TweetGeneratorActorCommand.None;
-            var result = TweetGeneratorActorCommandResponse.None;
-            try
-            {
-                _logger.Debug("Started TwitterEngine.Execute()!");
-
-                command = TweetGeneratorActorCommand.StartUp;
-                _tweetGeneratorActorRef = Context.ActorOf<TweetGeneratorActor>("TweetGeneratorActor");
-                result = await _tweetGeneratorActorRef.Ask<TweetGeneratorActorCommandResponse>(command);
-            }
-            catch (Exception exception)
-            {
-                System.Console.WriteLine($"Message: {exception.Message}\n, StackTrace: {exception.StackTrace}\n, InnerException: {exception?.InnerException?.Message}");
-            }
-            return result;
-
-            //finally
-            //{
-            //    command = TweetGeneratorActorCommand.Shutdown;
-            //    ActorSystem.ActorOf<TweetGeneratorActor>().Tell(command);
-
-            //    await ActorSystem.Terminate();
-
-            //    System.Console.WriteLine("Stopped ActorSystem!");
-            //}
-
-            System.Console.WriteLine("TwitterEngine Finished!");
-            System.Console.ReadLine();
-        }
-
         private static async Task<GetAllStatisticsMessage> RefreshStatisticsAsync()
         {
             GetAllStatisticsMessage retVal = null;
@@ -90,7 +72,7 @@ namespace JackIsBack.Console
         }
 
         /*
-         *  private static void RefreshScreen()
+         *  private static void RefreshAllDataFields()
         {
             CancellationTokenSource cts = new CancellationTokenSource();
             var token = cts.Token;

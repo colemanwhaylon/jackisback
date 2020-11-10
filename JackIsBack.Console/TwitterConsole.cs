@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Actor.Dsl;
 using DustInTheWind.ConsoleTools;
+using DustInTheWind.ConsoleTools.InputControls;
 using DustInTheWind.ConsoleTools.Menues;
 using DustInTheWind.ConsoleTools.Spinners;
 using DustInTheWind.ConsoleTools.TabularData;
 using JackIsBack.NetCoreLibrary.Interfaces;
+using JackIsBack.NetCoreLibrary.Messages;
+using JackIsBack.NetCoreLibrary.Utility;
 using ICommand = DustInTheWind.ConsoleTools.Menues.ICommand;
 
 namespace JackIsBack.Console
@@ -21,21 +25,22 @@ namespace JackIsBack.Console
         private static double _percentOfTweetsWithEmojis = 0.0;
         private static double _percentOfTweetsContainingURL = 0.0;
         private static double _percentOfTweetsContainingPhotoURL = 0.0;
+        private static YesNoAnswer _answer = YesNoAnswer.Yes;
 
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             try
             {
                 SetupConsoleUI();
 
-                var result = await SetupActorSystem();
-                if (result == TweetGeneratorActorCommandResponse.StartedUp)
+                var result = SetupActorSystem();
+                if (result == InitToggleCommandResponse.StartedUp)
                 {
                     DisplayMenu();
                 }
                 else
                 {
-                    System.Console.WriteLine($"Something else came back other than TweetGeneratorActorCommandResponse.StartedUp");
+                    System.Console.WriteLine($"Something else came back other than InitToggleCommandResponse.StartedUp");
                 }
             }
             catch (Exception exception)
@@ -47,20 +52,20 @@ namespace JackIsBack.Console
             System.Console.ReadLine();
         }
 
-        private static async Task<TweetGeneratorActorCommandResponse> SetupActorSystem()
+        private static InitToggleCommandResponse SetupActorSystem()
         {
             ActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
 
             var twitterEngineActorRef = ActorSystem.ActorOf<TwitterEngine>("TwitterEngine");
-            twitterEngineActorRef.Ask<>
-
-
-
-            return TweetGeneratorActorCommandResponse.StartedUp;
+            var result = twitterEngineActorRef.Ask<InitToggleCommandResponse>(InitToggleCommandRequest.StartUp).Result;
+            
+            return result;
         }
 
         private static void DisplayMenu()
         {
+            System.Console.Clear();
+
             TextMenu textMenu = new TextMenu
             {
 
@@ -92,7 +97,7 @@ namespace JackIsBack.Console
             do
             {
                 textMenu.Display();
-                System.Console.Clear();
+                //System.Console.Clear();
             } while (textMenu.SelectedItem.Id != "2");
 
         }
@@ -101,7 +106,16 @@ namespace JackIsBack.Console
         {
             public void Execute()
             {
-                DisplayEntireUI();
+                do
+                {
+                    for (var i = 0; i < 3; i++)
+                    {
+                        DisplayEntireUI();
+                    }
+                    AskToContinueAndClearScreen();
+                    if(_answer == YesNoAnswer.Yes) System.Console.Clear();
+                } while (_answer == YesNoAnswer.Yes);
+                
             }
 
             public bool IsActive { get; } = true;
@@ -187,7 +201,20 @@ namespace JackIsBack.Console
             System.Console.WriteLine();
 
             RefreshProgressBar();
+            //System.Console.Clear();
         }
+
+        private static void AskToContinueAndClearScreen()
+        {
+            YesNoQuestion yesNoQuestion = new YesNoQuestion("Do you want to continue?")
+            {
+                AcceptCancel = true,
+                DefaultAnswer = YesNoAnswer.Yes,
+            };
+
+            _answer = yesNoQuestion.ReadAnswer();
+        }
+
 
         private static void SetupConsoleUI()
         {
@@ -220,16 +247,18 @@ namespace JackIsBack.Console
                 finishEvent.Set();
             });
 
+            RefreshAllDataFields();
+            
             finishEvent.Wait();
-
             progressBar.Display();
         }
 
-        public void RefreshScreen()
+        public static void RefreshAllDataFields()
         {
-
-
-
+            var message = new GetAllStatisticsMessage(0);
+            var response = ActorSystem.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Ask<GetAllStatisticsMessage>(message)
+                .Result;
+            _totalNumberOfTweets = response.TotalNumberOfTweets;
         }
     }
 }
