@@ -59,14 +59,14 @@ namespace JackIsBack.NetCoreLibrary.Actors
             
 
             // Declare messages to Receive 
-            Receive<GetAllStatisticsMessage>(HandleGetAllStatisticsMessage);
+            Receive<GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessage);
             Receive<TimeKeeperActorMessage>(HandleTimeKeeperActorMessage);
         }
 
-        private void HandleGetAllStatisticsMessage(GetAllStatisticsMessage message)
+        private void HandleGetAllStatisticsMessage(GetAllStatisticsMessageResponse messageResponse)
         {
-            _logger.Debug($"TweetStatisticsActor got message: {message}.");
-            var result = new GetAllStatisticsMessage(3);
+            _logger.Debug($"TweetStatisticsActor got messageResponse: {messageResponse}.");
+            var result = new GetAllStatisticsMessageResponse(3);
             _logger.Debug($"TweetStatisticsActor sending back: {result}.");
             Context.Sender.Tell(result);
         }

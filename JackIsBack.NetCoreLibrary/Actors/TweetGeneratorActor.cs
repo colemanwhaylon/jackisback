@@ -34,7 +34,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private static IActorRef _tweetStatisticsActorRef;
         private static IActorRef _totalNumberOfTweetsActorRef;
         private bool _isInitialized = false;
-        private static GetAllStatisticsMessage Statistics;
+        private static GetAllStatisticsMessageResponse Statistics;
 
         public TweetGeneratorActor()
         {
@@ -114,25 +114,25 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
             //Register All Actors
             builder.RegisterType<TotalNumberOfTweetsActor>().InstancePerLifetimeScope();
-            builder.RegisterType<TweetAverageActor>();
-            builder.RegisterType<TopEmojisUsedActor>();
-            builder.RegisterType<PercentOfTweetsContainingEmojisActor>();
-            builder.RegisterType<TopHashTagsActor>();
-            builder.RegisterType<PercentOfTweetsWithUrlActor>();
-            builder.RegisterType<PercentOfTweetsWithPhotoUrlActor>();
-            builder.RegisterType<TopDomainsActor>();
-            builder.RegisterType<TweetStatisticsActor>();
+            builder.RegisterType<TweetAverageActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopEmojisUsedActor>().InstancePerLifetimeScope();
+            builder.RegisterType<PercentOfTweetsContainingEmojisActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopHashTagsActor>().InstancePerLifetimeScope();
+            builder.RegisterType<PercentOfTweetsWithUrlActor>().InstancePerLifetimeScope();
+            builder.RegisterType<PercentOfTweetsWithPhotoUrlActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopDomainsActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TweetStatisticsActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TimeKeeperActor>().InstancePerLifetimeScope();
             builder.RegisterType<MainActor>();
-            builder.RegisterType<TimeKeeperActor>();
 
             //Register Analyzer Actors
-            builder.RegisterType<PercentOfTweetsContainingEmojisAnalyzerActor>();
-            builder.RegisterType<PercentOfTweetsWithPhotoUrlAnalyzerActor>();
-            builder.RegisterType<PercentOfTweetsWithUrlAnalyzerActor>();
-            builder.RegisterType<TopDomainsAnalyzerActor>();
-            builder.RegisterType<TopEmojisUsedAnalyzerActor>();
-            builder.RegisterType<TopHashTagsAnalyzerActor>();
-            builder.RegisterType<TweetAverageAnalyzerActor>();
+            builder.RegisterType<PercentOfTweetsContainingEmojisAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<PercentOfTweetsWithPhotoUrlAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<PercentOfTweetsWithUrlAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopDomainsAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopEmojisUsedAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopHashTagsAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TweetAverageAnalyzerActor>().InstancePerLifetimeScope();
 
             //Register Messages
             builder.RegisterType<ChangeTotalNumberOfTweetsMessage>();

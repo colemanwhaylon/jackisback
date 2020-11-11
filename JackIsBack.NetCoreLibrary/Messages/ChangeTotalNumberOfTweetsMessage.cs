@@ -6,7 +6,7 @@ namespace JackIsBack.NetCoreLibrary.Messages
     {
         public Operation Operation { get; private set; }
         public int Total { get; private set; }
-        public int NewTotal { get; private set; }
+        public int? NewTotal { get; private set; }
         public bool NeedsResponse { get; private set; }
 
         public ChangeTotalNumberOfTweetsMessage(Operation operation, int amount, bool needsResponse = false)
@@ -16,7 +16,7 @@ namespace JackIsBack.NetCoreLibrary.Messages
             NeedsResponse = needsResponse;
         }
 
-        public ChangeTotalNumberOfTweetsMessage(Operation operation, int amount, int newTotal = 0, bool needsResponse = false)
+        public ChangeTotalNumberOfTweetsMessage(Operation operation, int amount, int? newTotal = 0, bool needsResponse = false)
         {
             Operation = operation;
             Total = amount;

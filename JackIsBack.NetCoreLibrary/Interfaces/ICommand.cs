@@ -21,6 +21,12 @@
         ExceptionOccurred
     }
 
+    public enum RefreshStatisticsRequest
+    {
+        None,
+        Update
+    }
+
     public interface ICommand
     {
         void Execute();

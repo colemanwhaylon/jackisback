@@ -8,29 +8,28 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
     public class TotalNumberOfTweetsActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
-        private int _totalNumberOfTweets = 0;
+        private int? _totalNumberOfTweets = 0;
 
         public TotalNumberOfTweetsActor()
         {
             _logger.Debug("TotalNumberOfTweetsActor created.");
-            Receive<GetAllStatisticsMessage>(HandleGetAllStatisticsMessage);
+            Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
             Receive<ChangeTotalNumberOfTweetsMessage>(HandleChangeTotalNumberOfTweetsMessage);
             Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
         }
 
-        private void HandleGetAllStatisticsMessage(GetAllStatisticsMessage message)
+        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest message)
         {
-            _logger.Debug($"TotalNumberOfTweetsActor.HandleGetAllStatisticsMessage() got message: {message.TotalNumberOfTweets}.  Count is now: {_totalNumberOfTweets}");
-            var result = new GetAllStatisticsMessage(_totalNumberOfTweets);
+            _logger.Debug($"TotalNumberOfTweetsActor.HandleRefreshStatisticsRequest() got message: {message}.  Count is now: {_totalNumberOfTweets}");
+            var result = new GetAllStatisticsMessageResponse(_totalNumberOfTweets);
             Sender.Tell(result, Self);
         }
 
         private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
         {
             _logger.Debug($"TotalNumberOfTweetsActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} Count is now: {_totalNumberOfTweets}");
-            var newMessage = new GetTotalNumberOfTweetsMessage(_totalNumberOfTweets);
-            _logger.Debug($"TotalNumberOfTweetsActor sending newMessage: {newMessage} to {Context.Sender}.");
-            Sender.Tell(newMessage, Self);
+            _logger.Debug($"TotalNumberOfTweetsActor sending newMessage: {message} to {Context.Sender}.");
+            Sender.Tell(message, Self);
         }
 
         private void HandleChangeTotalNumberOfTweetsMessage(ChangeTotalNumberOfTweetsMessage message)
