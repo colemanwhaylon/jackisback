@@ -8,19 +8,26 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
     public class PercentOfTweetsWithUrlActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private double? PercentOfTweetsWithUrl { get; set; } = 20.0;
+        private double? _percentOfTweetsWithUrl { get; set; } = 20.0;
 
         public PercentOfTweetsWithUrlActor()
         {
             _logger.Debug("PercentOfTweetsWithUrlActor created.");
             Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
             Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
+            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+        }
+        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
+        {
+            _logger.Debug($"PercentOfTweetsWithUrlActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} Percentage is now: {_percentOfTweetsWithUrl}");
+            message.PercentOfTweetsWithUrl = _percentOfTweetsWithUrl;
+            Sender.Tell(message, Self);
         }
 
-        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest obj)
+        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest message)
         {
             var response = new GetAllStatisticsMessageResponse();
-            response.PercentOfTweetsWithUrl = PercentOfTweetsWithUrl;
+            response.PercentOfTweetsWithUrl = _percentOfTweetsWithUrl;
             Sender.Tell(response, Self);
         }
 

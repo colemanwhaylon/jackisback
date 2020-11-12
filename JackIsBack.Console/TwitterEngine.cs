@@ -35,7 +35,9 @@ namespace JackIsBack.Console
 
         private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest message)
         {
-            _routerForAllStatisticActors.Tell(message);
+            _routerForAllStatisticActors.Forward(message);
+
+            _logger.Debug($"Forwarded message: {message}");
         }
 
         private void HandleInitToggleCommandResponse(InitToggleCommandResponse obj)

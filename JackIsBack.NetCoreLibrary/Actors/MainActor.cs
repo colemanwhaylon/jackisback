@@ -3,6 +3,7 @@ using Akka.Event;
 using Akka.Routing;
 using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
+using JackIsBack.NetCoreLibrary.Messages;
 using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors
@@ -31,8 +32,13 @@ namespace JackIsBack.NetCoreLibrary.Actors
 
         private void HandleTweet(IMyTweetDTO message)
         {
-            _logger.Debug($"MainActor received this tweet message now: {message.Tweet}");
-            _routerForAllAnalyzers.Tell(message, Self);
+            _logger.Debug($"MainActor received this tweet message now: {message}");
+
+            var result = (int)Context.ActorSelection(SharedStrings.TotalNumberOfTweetsActorPath).Ask(message).Result;
+            var newMessage = new GetTotalNumberOfTweetsMessage(result, message.PercentOfTweetsContainingEmojis,
+                message.PercentOfTweetsWithPhotoUrl, message.PercentOfTweetsWithUrl, message.AverageTweetsPerHour, message.AverageTweetsPerMinute, message.AverageTweetsPerSecond);
+
+            _routerForAllAnalyzers.Tell(newMessage, Self);
         }
     }
 }

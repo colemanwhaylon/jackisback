@@ -10,37 +10,53 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
     public class TopDomainsActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private static SortedList<string, int> TopDomains { get; set; } 
+        private static SortedList<string, int>? _topDomains { get; set; } 
         
 
         public TopDomainsActor()
         {
             _logger.Debug("TopDomainsActor created.");
 
-            TopDomains = new SortedList<string, int>();
+            _topDomains = new SortedList<string, int>();
             Receive<GetAllStatisticsMessageResponse>(HandleTwitterMessageAsync);
+            Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
+            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+        }
+
+        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
+        {
+            _logger.Debug($"TopDomainsActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} _topDomains Count is now: {_topDomains?.Count}");
+            message.TopDomains = _topDomains;
+            Sender.Tell(message, Self);
+        }
+
+        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest message)
+        {
+            var response = new GetAllStatisticsMessageResponse();
+            response.TopDomains = _topDomains;
+            Sender.Tell(response, Self);
         }
 
         private void HandleTwitterMessageAsync(GetAllStatisticsMessageResponse messageResponse)
         {
             _logger.Debug($"TopDomainsActor got messageResponse: {messageResponse} ");
 
-            if (messageResponse.Domains != null)
+            if (messageResponse.TopDomains != null)
             {
                 int aValue;
-                foreach (var domains in messageResponse.Domains)
+                foreach (var domain in messageResponse.TopDomains)
                 {
-                    var key = domains;
-                    if (TopDomains.ContainsKey(key))
+                    var key = domain.Key;
+                    if (_topDomains.ContainsKey(key))
                     {
-                        if (TopDomains.TryGetValue(key, out aValue))
+                        if (_topDomains.TryGetValue(key, out aValue))
                         {
-                            TopDomains.TryAdd(key, aValue + 1);
+                            _topDomains.TryAdd(key, aValue + 1);
                         }
                     }
                     else
                     {
-                        TopDomains.TryAdd(key, 1);
+                        _topDomains.TryAdd(key, 1);
                     }
                 }
             }

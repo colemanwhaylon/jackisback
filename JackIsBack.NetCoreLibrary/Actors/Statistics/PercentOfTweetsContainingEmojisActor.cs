@@ -8,24 +8,33 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
     public class PercentOfTweetsContainingEmojisActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private double? PercentOfTweetsContainingEmojis { get; set; } = 10.0;
+        private double? _percentOfTweetsContainingEmojis { get; set; } = 10.0;
 
         public PercentOfTweetsContainingEmojisActor()
         {
             _logger.Debug("PercentOfTweetsContainingEmojisActor created.");
             Receive<IMyTweetDTO>(HandleTwitterMessageAsync); 
             Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
+            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+        }
+
+        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
+        {
+            _logger.Debug($"PercentOfTweetsContainingEmojisActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} Percentage is now: {_percentOfTweetsContainingEmojis}");
+            message.PercentOfTweetsContainingEmojis = _percentOfTweetsContainingEmojis;
+            Sender.Tell(message, Self);
         }
 
         private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest obj)
         {
             var response = new GetAllStatisticsMessageResponse();
-            response.PercentOfTweetsContainingEmojis = PercentOfTweetsContainingEmojis;
+            response.PercentOfTweetsContainingEmojis = _percentOfTweetsContainingEmojis;
             Sender.Tell(response, Self);
         }
 
         private void HandleTwitterMessageAsync(IMyTweetDTO message)
         {
+
             _logger.Debug($"PercentOfTweetsContainingEmojisActor got message: {message.Tweet} ");
         }
     }

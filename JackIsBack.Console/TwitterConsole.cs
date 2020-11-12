@@ -9,6 +9,7 @@ using JackIsBack.NetCoreLibrary.Messages;
 using JackIsBack.NetCoreLibrary.Utility;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Routing;
@@ -24,16 +25,16 @@ namespace JackIsBack.Console
         private static IActorRef _twitterEngineActorRef;
 
         private static int? _totalNumberOfTweets = 0;
-        private static string _topEmojiUsed = ":)";
         private static double? _percentOfTweetsWithEmojis = 0.0;
         private static double? _percentOfTweetsContainingURL = 0.0;
         private static double? _percentOfTweetsContainingPhotoURL = 0.0;
         private static double? _averageTweetsPerHour = 0.0;
         private static double? _averageTweetsPerMinute = 0.0;
         private static double? _averageTweetsPerSecond = 0.0;
-        private static List<string>? _domains;
-        private static string _topDomainUsed;
-        private static string _topHashTag;
+        private static string _topEmojiUsed = string.Empty;
+        private static SortedList<string, int>? _topEmojisUsed = new SortedList<string, int>();
+        private static SortedList<string, int>? _topDomainsUsed = new SortedList<string, int>();
+        private static SortedList<string, int>? _topHashTagsUsed = new SortedList<string, int>();
 
         public static void Main(string[] args)
         {
@@ -67,7 +68,7 @@ namespace JackIsBack.Console
             _twitterEngineActorRef = ActorSystem.ActorOf<TwitterEngine>("TwitterEngine");
             var result = _twitterEngineActorRef.Ask<InitToggleCommandResponse>(InitToggleCommandRequest.StartUp).Result;
 
-            
+
 
             return result;
         }
@@ -116,16 +117,22 @@ namespace JackIsBack.Console
         {
             public void Execute()
             {
-                do
+                try
                 {
-                    for (var i = 0; i < 3; i++)
+                    do
                     {
-                        DisplayEntireUI();
-                    }
-                    AskToContinueAndClearScreen();
-                    if (_answer == YesNoAnswer.Yes) System.Console.Clear();
-                } while (_answer == YesNoAnswer.Yes);
-
+                        for (var i = 0; i < 3; i++)
+                        {
+                            DisplayEntireUI();
+                        }
+                        AskToContinueAndClearScreen();
+                        if (_answer == YesNoAnswer.Yes) System.Console.Clear();
+                    } while (_answer == YesNoAnswer.Yes);
+                }
+                catch (Exception exception)
+                {
+                    System.Console.WriteLine(exception.Message);
+                }
             }
 
             public bool IsActive { get; } = true;
@@ -152,6 +159,8 @@ namespace JackIsBack.Console
             dataGrid.Columns.Add("% of Tweets With Emojis");
             dataGrid.Columns.Add("% of Tweets That Contain a URL");
             dataGrid.Columns.Add("% of Tweets That Contain a Photo URL");
+
+            _topEmojiUsed = ((_topEmojisUsed != null && _topEmojisUsed.Any()) ? _topEmojisUsed?.Keys.First() : ":)") ?? string.Empty;
             dataGrid.Rows.Add($"{_totalNumberOfTweets}",
                 $"{_topEmojiUsed}",
                 $"{_percentOfTweetsWithEmojis}",
@@ -165,52 +174,40 @@ namespace JackIsBack.Console
             System.Console.WriteLine();
 
             //TABLE #2 
-            DataGrid domainDatagrid = new DataGrid("Top Domains of URLs in Tweets");
-            domainDatagrid.Columns.Add("Top Domains");
-            var domainRows = new List<string>
-            {
-                "http://www.google.com",
-                "http://www.google.com",
-                "http://www.google.com",
-                "http://www.google.com",
-                "http://www.google.com"
-            };
-            foreach (var row in domainRows)
-            {
-                domainDatagrid.Rows.Add($"{row}");
-            }
+            //DataGrid domainDatagrid = new DataGrid("Top TopDomains of URLs in Tweets");
+            //domainDatagrid.Columns.Add("Top TopDomains");
+            //var domainRows = _topDomainsUsed;
+            //foreach (var row in domainRows.Take(5))
+            //{
+            //    domainDatagrid.Rows.Add($"{row.Key}");
+            //}
 
-            domainDatagrid.DisplayBorderBetweenRows = true;
-            domainDatagrid.DisplayColumnHeaders = true;
-            domainDatagrid.BorderTemplate = BorderTemplate.DoubleLineBorderTemplate;
-            domainDatagrid.Display();
-            System.Console.WriteLine();
-            System.Console.WriteLine();
+            //domainDatagrid.DisplayBorderBetweenRows = true;
+            //domainDatagrid.DisplayColumnHeaders = true;
+            //domainDatagrid.BorderTemplate = BorderTemplate.DoubleLineBorderTemplate;
+            //domainDatagrid.Display();
+            //System.Console.WriteLine();
+            //System.Console.WriteLine();
 
-            //TABLE #2
-            DataGrid hashTagDatagrid = new DataGrid("Top HashTag in Tweets");
-            hashTagDatagrid.Columns.Add("Top HashTags");
-            var hashTagRows = new List<string>
-            {
-                ":)",
-                ":>",
-                ":<",
-                "(<>)",
-                ")("
-            };
-            foreach (var row in hashTagRows)
-            {
-                hashTagDatagrid.Rows.Add($"{row}");
-            }
+            ////TABLE #3
+            //DataGrid hashTagDatagrid = new DataGrid("Top HashTag in Tweets");
+            //hashTagDatagrid.Columns.Add("Top HashTags");
+            //var hashTagRows = _topHashTagsUsed;
+            //foreach (var row in hashTagRows.Take(5))
+            //{
+            //    hashTagDatagrid.Rows.Add($"{row.Key}");
+            //}
 
-            hashTagDatagrid.DisplayBorderBetweenRows = true;
-            hashTagDatagrid.DisplayColumnHeaders = true;
-            hashTagDatagrid.BorderTemplate = BorderTemplate.DoubleLineBorderTemplate;
-            hashTagDatagrid.Display();
+            //hashTagDatagrid.DisplayBorderBetweenRows = true;
+            //hashTagDatagrid.DisplayColumnHeaders = true;
+            //hashTagDatagrid.BorderTemplate = BorderTemplate.DoubleLineBorderTemplate;
+            //hashTagDatagrid.Display();
             System.Console.WriteLine();
             System.Console.WriteLine();
 
             RefreshProgressBar();
+            RefreshAllDataFields();
+
             //System.Console.Clear();
         }
 
@@ -256,10 +253,9 @@ namespace JackIsBack.Console
                 finishEvent.Set();
             });
 
-            RefreshAllDataFields();
-
             finishEvent.Wait();
             progressBar.Display();
+
         }
 
         public static void RefreshAllDataFields()
@@ -273,13 +269,12 @@ namespace JackIsBack.Console
                 _percentOfTweetsContainingPhotoURL = response.PercentOfTweetsWithPhotoUrl;
                 _percentOfTweetsContainingURL = response.PercentOfTweetsWithUrl;
                 _percentOfTweetsWithEmojis = response.PercentOfTweetsContainingEmojis;
-                _topEmojiUsed = response.TopEmojiUsed;
                 _averageTweetsPerHour = response.AverageTweetsPerHour;
                 _averageTweetsPerMinute = response.AverageTweetsPerMinute;
                 _averageTweetsPerSecond = response.AverageTweetsPerSecond;
-                _domains = response.Domains;
-                _topDomainUsed = response.TopDomainUsed;
-                _topHashTag = response.TopHashTag;
+                _topDomainsUsed = response.TopDomains;
+                _topEmojisUsed = response.TopEmojis;
+                _topHashTagsUsed = response.TopHashTags;
             }
         }
     }

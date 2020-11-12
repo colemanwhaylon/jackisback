@@ -19,6 +19,11 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug($"PercentOfTweetsContainingEmojisAnalyzerActor is analyzing tweet message: {message.Tweet}");
 
+            
+
+
+
+
             Context.ActorSelection(SharedStrings.PercentOfTweetsContainingEmojisActorPath).Tell(message);
             //Context.Self.Tell(PoisonPill.Instance);
         }

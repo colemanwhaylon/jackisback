@@ -13,11 +13,11 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
     public class TopDomainsAnalyzerActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
-        private readonly List<string> _domains;
+        private readonly SortedList<string, int> _domains;
 
         public TopDomainsAnalyzerActor()
         {
-            _domains = new List<string>();
+            _domains = new SortedList<string, int>();
             _logger.Debug("TopDomainsAnalyzerActor created.");
 
             Receive<IMyTweetDTO>(AnalyzeTwitterMessage);
@@ -34,11 +34,11 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
                 foreach (var match in matches)
                 {
                     var key = match.ToString();
-                    _domains.Add(key);
+                    _domains.Add(key, 1);
                 }
             }
 
-            var result = new GetAllStatisticsMessageResponse(domains: _domains);
+            var result = new GetAllStatisticsMessageResponse(topDomains: _domains);
             Context.ActorSelection(SharedStrings.TopDomainsActorPath).Tell(result);
 
 

@@ -29,6 +29,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         {
             _logger.Debug($"TotalNumberOfTweetsActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} Count is now: {_totalNumberOfTweets}");
             _logger.Debug($"TotalNumberOfTweetsActor sending newMessage: {message} to {Context.Sender}.");
+            message = new GetTotalNumberOfTweetsMessage(_totalNumberOfTweets);
             Sender.Tell(message, Self);
         }
 
