@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
 using JackIsBack.NetCoreLibrary.Utility;
@@ -20,26 +21,26 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
             _domains = new SortedList<string, int>();
             _logger.Debug("TopDomainsAnalyzerActor created.");
 
-            Receive<IMyTweetDTO>(AnalyzeTwitterMessage);
+            Receive<MyTweetDTO>(AnalyzeTwitterMessage);
         }
 
-        private void AnalyzeTwitterMessage(IMyTweetDTO message)
+        private void AnalyzeTwitterMessage(MyTweetDTO message)
         {
-            _logger.Debug($"TopDomainsAnalyzerActor is analyzing tweet message: {message.Tweet}");
+            //_logger.Debug($"TopDomainsAnalyzerActor is analyzing tweet message: {message.Tweet}");
 
-            var regex = new Regex(@"#\w+");
-            var matches = regex.Matches(message.Tweet);
-            if (matches.Any())
-            {
-                foreach (var match in matches)
-                {
-                    var key = match.ToString();
-                    _domains.Add(key, 1);
-                }
-            }
+            //var regex = new Regex(@"#\w+");
+            //var matches = regex.Matches(message.Tweet);
+            //if (matches.Any())
+            //{
+            //    foreach (var match in matches)
+            //    {
+            //        var key = match.ToString();
+            //        _domains.Add(key, 1);
+            //    }
+            //}
 
-            var result = new GetAllStatisticsMessageResponse(topDomains: _domains);
-            Context.ActorSelection(SharedStrings.TopDomainsActorPath).Tell(result);
+            //var result = new GetAllStatisticsMessageResponse();
+            //Context.ActorSelection(SharedStrings.TopDomainsActorPath).Tell(result);
 
 
             //Context.Self.Tell(PoisonPill.Instance);

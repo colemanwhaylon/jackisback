@@ -1,6 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
-using JackIsBack.NetCoreLibrary.Interfaces;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Messages;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
@@ -15,42 +15,23 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         public TweetAverageActor()
         {
             _logger.Debug("TweetAverageActor created.");
-            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
-            Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
-            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessageResponse);
         }
-        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
+        private void HandleTwitterMessageAsync(MyTweetDTO message)
         {
-            _logger.Debug($"TweetAverageActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} AverageTweetsPerHour is now: {_averageTweetsPerHour}, AverageTweetsPerMinute is now: {_averageTweetsPerMinute}, AverageTweetsPerSecond is now: {_avgTweetsPerSecond}");
+            _logger.Debug($"TweetAverageActor got message: {message} ");
+
+        }
+
+        private void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)
+        {
             message.AverageTweetsPerHour = _averageTweetsPerHour;
             message.AverageTweetsPerMinute = _averageTweetsPerMinute;
             message.AverageTweetsPerSecond = _avgTweetsPerSecond;
 
             Sender.Tell(message, Self);
-        }
-
-        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest obj)
-        {
-            var response = new GetAllStatisticsMessageResponse();
-            response.AverageTweetsPerHour = _averageTweetsPerHour;
-            response.AverageTweetsPerMinute = _averageTweetsPerMinute;
-            response.AverageTweetsPerSecond = _avgTweetsPerSecond;
-            Sender.Tell(response, Self);
-        }
-
-        private void HandleTwitterMessageAsync(IMyTweetDTO message)
-        {
-            _logger.Debug($"TweetAverageActor got message: {message} ");
-
-            //var interval =  new TimeSpan(DateTime.Now.Subtract(TweetStatistics.StartDateTime).Ticks);
-            //var totalTweets = _amount + TweetStatistics.TotalTweetCount;
-            //var avgTweetsPerHour = totalTweets / interval.TotalHours;
-            //var avgTweetsPerMinute = totalTweets / interval.TotalMinutes;
-            //var avgTweetsPerSecond = totalTweets / interval.TotalSeconds;
-
-            //TweetStatistics.AverageTweetsPerHour = (long)avgTweetsPerHour;
-            //TweetStatistics.AverageTweetsPerMinute = (long)avgTweetsPerMinute;
-            //TweetStatistics.AverageTweetsPerSecond = (long)avgTweetsPerSecond;
         }
     }
 }

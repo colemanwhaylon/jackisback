@@ -13,6 +13,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Routing;
+using JackIsBack.NetCoreLibrary;
+using JackIsBack.NetCoreLibrary.Actors;
 using Serilog.Debugging;
 using ICommand = DustInTheWind.ConsoleTools.Menues.ICommand;
 
@@ -32,9 +34,9 @@ namespace JackIsBack.Console
         private static double? _averageTweetsPerMinute = 0.0;
         private static double? _averageTweetsPerSecond = 0.0;
         private static string _topEmojiUsed = string.Empty;
-        private static SortedList<string, int>? _topEmojisUsed = new SortedList<string, int>();
-        private static SortedList<string, int>? _topDomainsUsed = new SortedList<string, int>();
-        private static SortedList<string, int>? _topHashTagsUsed = new SortedList<string, int>();
+        private static List<string>? _topEmojisUsed = new List<string>();
+        private static List<string>? _topDomainsUsed = new List<string>();
+        private static List<string>? _topHashTagsUsed = new List<string>();
 
         public static void Main(string[] args)
         {
@@ -121,9 +123,10 @@ namespace JackIsBack.Console
                 {
                     do
                     {
-                        for (var i = 0; i < 3; i++)
+                        for (var i = 0; i < 6; i++)
                         {
                             DisplayEntireUI();
+                            Task.Delay(500);
                         }
                         AskToContinueAndClearScreen();
                         if (_answer == YesNoAnswer.Yes) System.Console.Clear();
@@ -160,7 +163,7 @@ namespace JackIsBack.Console
             dataGrid.Columns.Add("% of Tweets That Contain a URL");
             dataGrid.Columns.Add("% of Tweets That Contain a Photo URL");
 
-            _topEmojiUsed = ((_topEmojisUsed != null && _topEmojisUsed.Any()) ? _topEmojisUsed?.Keys.First() : ":)") ?? string.Empty;
+            _topEmojiUsed = ((_topEmojisUsed != null && _topEmojisUsed.Any()) ? _topEmojisUsed?.First() : ":)") ?? string.Empty;
             dataGrid.Rows.Add($"{_totalNumberOfTweets}",
                 $"{_topEmojiUsed}",
                 $"{_percentOfTweetsWithEmojis}",
@@ -205,8 +208,9 @@ namespace JackIsBack.Console
             System.Console.WriteLine();
             System.Console.WriteLine();
 
-            RefreshProgressBar();
+            //RefreshProgressBar();
             RefreshAllDataFields();
+            UpdateStatisticsAndRebind();
 
             //System.Console.Clear();
         }
@@ -261,8 +265,13 @@ namespace JackIsBack.Console
         public static void RefreshAllDataFields()
         {
             var message = RefreshStatisticsRequest.Update;
-            var response = ActorSystem.ActorSelection(_twitterEngineActorRef.Path).Ask<GetAllStatisticsMessageResponse>(message)
-                .Result;
+            _twitterEngineActorRef.Tell(message);
+        }
+
+        public static void UpdateStatisticsAndRebind()
+        {
+            var message = new GetAllStatisticsMessageResponse();
+            var response = _twitterEngineActorRef.Ask<GetAllStatisticsMessageResponse>(message).Result;
             if (response != null)
             {
                 _totalNumberOfTweets = response.TotalNumberOfTweets;
@@ -276,6 +285,7 @@ namespace JackIsBack.Console
                 _topEmojisUsed = response.TopEmojis;
                 _topHashTagsUsed = response.TopHashTags;
             }
+
         }
     }
 }

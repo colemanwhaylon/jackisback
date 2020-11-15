@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
 
@@ -14,26 +16,25 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         public TopEmojisUsedActor()
         {
             _logger.Debug("TopEmojisUsedActor created.");
-            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
-            Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
-            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+            _topEmojis = new SortedList<string, int>();
+
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessageResponse);
         }
 
-        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
+        private void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)
         {
-            _logger.Debug($"TopEmojisUsedActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} _topEmojis Count is now: {_topEmojis?.Count}");
-            message.TopEmojis = _topEmojis;
-            Sender.Tell(message, Self);
+            message.TopEmojis = _topEmojis
+                .OrderByDescending(r => r.Value)
+                .Select(r => r.Key)
+                .Take(5)
+                .ToList();
+
+            TweetStatisticsActor.IActorRefs["TopHashTagsActor"].Forward(message);
         }
 
-        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest message)
-        {
-            var response = new GetAllStatisticsMessageResponse();
-            response.TopEmojis = _topEmojis;
-            Sender.Tell(response, Self);
-        }
 
-        private void HandleTwitterMessageAsync(IMyTweetDTO message)
+        private void HandleTwitterMessageAsync(MyTweetDTO message)
         {
             _logger.Debug($"TopEmojisUsedActor got message: {message} ");
 

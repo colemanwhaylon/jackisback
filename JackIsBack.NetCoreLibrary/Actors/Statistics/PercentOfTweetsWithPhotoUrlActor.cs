@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
 
@@ -13,22 +14,14 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         public PercentOfTweetsWithPhotoUrlActor()
         {
             _logger.Debug("PercentOfTweetsWithPhotoUrlActor created.");
-            Receive<IMyTweetDTO>(HandleTwitterMessageAsync);
-            Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
-            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive< GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessageResponse);
         }
 
-        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest obj)
+        private void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)
         {
-            var response = new GetAllStatisticsMessageResponse();
-            response.PercentOfTweetsWithPhotoUrl = _percentOfTweetsWithPhotoUrl;
-            Sender.Tell(response, Self);
-        }
-        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
-        {
-            _logger.Debug($"PercentOfTweetsWithPhotoUrlActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} Percentage is now: {_percentOfTweetsWithPhotoUrl}");
             message.PercentOfTweetsWithPhotoUrl = _percentOfTweetsWithPhotoUrl;
-            Sender.Tell(message, Self);
+            TweetStatisticsActor.IActorRefs["PercentOfTweetsWithUrlActor"].Forward(message);
         }
 
         private void HandleTwitterMessageAsync(IMyTweetDTO message)

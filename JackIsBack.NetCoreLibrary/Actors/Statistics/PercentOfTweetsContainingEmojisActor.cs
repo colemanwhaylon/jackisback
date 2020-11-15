@@ -1,7 +1,9 @@
 ﻿using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
+using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
@@ -13,29 +15,26 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
         public PercentOfTweetsContainingEmojisActor()
         {
             _logger.Debug("PercentOfTweetsContainingEmojisActor created.");
-            Receive<IMyTweetDTO>(HandleTwitterMessageAsync); 
-            Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
-            Receive<GetTotalNumberOfTweetsMessage>(HandleGetTotalNumberOfTweetsMessage);
+            Receive<MyTweetDTO>(HandleTwitterMessageAsync);
+            Receive<GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessageResponse);
         }
-
-        private void HandleGetTotalNumberOfTweetsMessage(GetTotalNumberOfTweetsMessage message)
-        {
-            _logger.Debug($"PercentOfTweetsContainingEmojisActor.HandleGetTotalNumberOfTweetsMessage() got message: {message} Percentage is now: {_percentOfTweetsContainingEmojis}");
-            message.PercentOfTweetsContainingEmojis = _percentOfTweetsContainingEmojis;
-            Sender.Tell(message, Self);
-        }
-
-        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest obj)
-        {
-            var response = new GetAllStatisticsMessageResponse();
-            response.PercentOfTweetsContainingEmojis = _percentOfTweetsContainingEmojis;
-            Sender.Tell(response, Self);
-        }
-
+        
         private void HandleTwitterMessageAsync(IMyTweetDTO message)
         {
+            _percentOfTweetsContainingEmojis = message.PercentOfTweetsContainingEmojis;
 
-            _logger.Debug($"PercentOfTweetsContainingEmojisActor got message: {message.Tweet} ");
+            _logger.Debug($"Private state was updated: PercentOfTweetsContainingEmojis = {message.PercentOfTweetsContainingEmojis} ");
+
+            var result = new GetTotalNumberOfTweetsMessage(percentOfTweetsContainingEmojis: message.PercentOfTweetsContainingEmojis);
+            Context.Sender.Tell(result, Self);
         }
+
+        private void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)
+        {
+            message.PercentOfTweetsContainingEmojis = _percentOfTweetsContainingEmojis;
+            TweetStatisticsActor.IActorRefs["PercentOfTweetsWithPhotoUrlActor"].Forward(message);
+        }
+
+        
     }
 }

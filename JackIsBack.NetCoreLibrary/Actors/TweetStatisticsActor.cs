@@ -5,6 +5,8 @@ using JackIsBack.NetCoreLibrary.Actors.Analyzers;
 using JackIsBack.NetCoreLibrary.Actors.Statistics;
 using JackIsBack.NetCoreLibrary.Messages;
 using System;
+using System.Collections.Generic;
+using JackIsBack.NetCoreLibrary.DTO;
 
 namespace JackIsBack.NetCoreLibrary.Actors
 {
@@ -33,19 +35,13 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private IActorRef _percentOfTweetsWithUrlActorRef;
         //private IActorRef _totalNumberOfTweetsActorRef;
 
+        public static SortedList<string, IActorRef> IActorRefs { get; set; } = new SortedList<string, IActorRef>();
+
         public TweetStatisticsActor()
         {
             _logger.Debug("TweetStatisticsActor created.");
 
-            // Init Analyzer Actors
-            //akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor/PercentOfTweetsContainingEmojisAnalyzerActor
-            _percentOfTweetsContainingEmojisAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsContainingEmojisAnalyzerActor>(), "PercentOfTweetsContainingEmojisAnalyzerActor");
-            _percentOfTweetsWithPhotoUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithPhotoUrlAnalyzerActor>(), "PercentOfTweetsWithPhotoUrlAnalyzerActor");
-            _percentOfTweetsWithUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithUrlAnalyzerActor>(), "PercentOfTweetsWithUrlAnalyzerActor");
-            _topDomainsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopDomainsAnalyzerActor>(), "TopDomainsAnalyzerActor");
-            _topEmojisUsedAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
-            _topHashTagsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
-            _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
+            IActorRefs = new SortedList<string, IActorRef>();
 
             // Init Statistics Actors
             _percentOfTweetsContainingEmojisActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsContainingEmojisActor>(), "PercentOfTweetsContainingEmojisActor");
@@ -56,7 +52,45 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _topHashTagsActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsActor>(), "TopHashTagsActor");
             _tweetAverageActorRef = Context.ActorOf(Context.DI().Props<TweetAverageActor>(), "TweetAverageActor");
 
+
+            // Init Analyzer Actors
+            //akka://TwitterStatisticsActorSystem/user/TweetStatisticsActor/PercentOfTweetsContainingEmojisAnalyzerActor
+            _percentOfTweetsContainingEmojisAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsContainingEmojisAnalyzerActor>(), "PercentOfTweetsContainingEmojisAnalyzerActor");
+            Context.System.EventStream.Subscribe(_percentOfTweetsContainingEmojisAnalyzerActorRef, typeof(MyTweetDTO));
+
+
+            _percentOfTweetsWithPhotoUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithPhotoUrlAnalyzerActor>(), "PercentOfTweetsWithPhotoUrlAnalyzerActor");
+            _percentOfTweetsWithUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithUrlAnalyzerActor>(), "PercentOfTweetsWithUrlAnalyzerActor");
+            _topDomainsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopDomainsAnalyzerActor>(), "TopDomainsAnalyzerActor");
+            _topEmojisUsedAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopEmojisUsedAnalyzerActor>(), "TopEmojisUsedAnalyzerActor");
+            _topHashTagsAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TopHashTagsAnalyzerActor>(), "TopHashTagsAnalyzerActor");
+            _tweetAverageAnalyzerActorRef = Context.ActorOf(Context.DI().Props<TweetAverageAnalyzerActor>(), "TweetAverageAnalyzerActor");
+
             
+            IActorRefs.Add("PercentOfTweetsContainingEmojisActor", _percentOfTweetsContainingEmojisActorRef);
+            IActorRefs.Add("PercentOfTweetsWithPhotoUrlActor", _percentOfTweetsWithPhotoUrlActorRef);
+            IActorRefs.Add("PercentOfTweetsWithUrlActor", _percentOfTweetsWithUrlActorRef);
+            IActorRefs.Add("TopDomainsActor", _topDomainsActorRef);
+            IActorRefs.Add("TopEmojisUsedActor", _topEmojisUsedActorRef);
+            IActorRefs.Add("TopHashTagsActor", _topHashTagsActorRef);
+            IActorRefs.Add("TweetAverageActor", _tweetAverageActorRef);
+
+            //{
+            //    _topHashTagsAnalyzerActorRef,
+            //    _topEmojisUsedAnalyzerActorRef,
+            //    _tweetAverageAnalyzerActorRef,
+            //    _topDomainsAnalyzerActorRef,
+            //    _percentOfTweetsWithPhotoUrlAnalyzerActorRef,
+            //    _percentOfTweetsContainingEmojisAnalyzerActorRef,
+            //    _percentOfTweetsWithUrlAnalyzerActorRef,
+            //    _topHashTagsActorRef,
+            //    _topEmojisUsedActorRef,
+            //    _tweetAverageActorRef,
+            //    _topDomainsActorRef,
+            //    _percentOfTweetsWithPhotoUrlActorRef,
+            //    _percentOfTweetsContainingEmojisActorRef,
+            //    _percentOfTweetsWithUrlActorRef,
+            //});
 
             // Declare messages to Receive 
             Receive<GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessage);
@@ -66,7 +100,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private void HandleGetAllStatisticsMessage(GetAllStatisticsMessageResponse messageResponse)
         {
             _logger.Debug($"TweetStatisticsActor got messageResponse: {messageResponse}.");
-            var result = new GetAllStatisticsMessageResponse(3);
+            var result = new GetAllStatisticsMessageResponse();
             _logger.Debug($"TweetStatisticsActor sending back: {result}.");
             Context.Sender.Tell(result);
         }
@@ -77,13 +111,6 @@ namespace JackIsBack.NetCoreLibrary.Actors
             _endDateTime = message.EndDateTime;
         }
 
-        public override void AroundPreStart()
-        {
-            base.AroundPreStart();
-            _logger.Debug("AroundPreStart() executed HERE NOW!");
-        }
-
-        //todo:Declare method that can be asked for by a client to get all statistic actor's values
 
     }
 }

@@ -7,13 +7,12 @@ using Akka.Util.Internal;
 using Autofac;
 using AutoMapper;
 using JackIsBack.NetCoreLibrary.Actors.Analyzers;
+using JackIsBack.NetCoreLibrary.Actors.Statistics;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
 using Serilog;
 using System;
-using JackIsBack.NetCoreLibrary.Actors.Statistics;
-using JackIsBack.NetCoreLibrary.DTO;
-using JackIsBack.NetCoreLibrary.Utility;
 using Tweetinvi;
 using Tweetinvi.Core.DTO;
 using Tweetinvi.Events;
@@ -25,6 +24,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
 {
     public class TweetGeneratorActor : ReceiveActor, ITweetGenerator
     {
+        private int _tweetCount = 0;
         private ILoggingAdapter _logger;
         private static ActorSystem ActorSystem;
         private ISampleStream _sampleStream;
@@ -32,30 +32,59 @@ namespace JackIsBack.NetCoreLibrary.Actors
         private static IDependencyResolver _resolver;
         private static IActorRef _mainActorRef;
         private static IActorRef _tweetStatisticsActorRef;
-        private static IActorRef _totalNumberOfTweetsActorRef;
+        private static IActorRef _percentOfTweetsContainingEmojisActorRef;
+        private static IActorRef _percentOfTweetsContainingEmojisAnalyzerActorRef;
+
         private bool _isInitialized = false;
-        private static GetAllStatisticsMessageResponse Statistics;
+        
 
         public TweetGeneratorActor()
         {
             _isInitialized = Initialize();
 
+            // Setup an actor that will handle deadletter type messages
+            var deadletterWatchMonitorProps = Props.Create(() => new DeadletterMonitor());
+            var deadletterWatchActorRef = ActorSystem.ActorOf(deadletterWatchMonitorProps, "DeadLetterMonitoringActor");
+
+            // subscribe to the event stream for messages of type "DeadLetter"
+            ActorSystem.EventStream.Subscribe(deadletterWatchActorRef, typeof(DeadLetter));
+
             // Init MainActor
             //_mainActorRef = ActorSystem.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
-            _mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
+            //_mainActorRef = Context.System.ActorOf(Props.Create<MainActor>().WithRouter(FromConfig.Instance), "MainActor");
+
+            //var _percentOfTweetsContainingEmojisActorRef =
+            //    Context.System.ActorOf(Props.Create<PercentOfTweetsContainingEmojisActor>(), "PercentOfTweetsContainingEmojisActor");
+
+            //_percentOfTweetsContainingEmojisAnalyzerActorRef =
+            //    Context.System.ActorOf(Props.Create<PercentOfTweetsContainingEmojisAnalyzerActor>(), "PercentOfTweetsContainingEmojisAnalyzerActor");
+            ////ActorSystem.EventStream.Subscribe(_percentOfTweetsContainingEmojisAnalyzerActorRef, typeof(ITweetDTO));
+            
+            
+            //ActorSystem.EventStream.Subscribe(_percentOfTweetsContainingEmojisAnalyzerActorRef, typeof(MyTweetDTO));
+
+
+            //var _percentOfTweetsWithUrlAnalyzerActorRef = Context.ActorOf(Context.DI().Props<PercentOfTweetsWithUrlAnalyzerActor>(), "PercentOfTweetsWithUrlAnalyzerActor");
+
             _tweetStatisticsActorRef = Context.System.ActorOf(Props.Create<TweetStatisticsActor>(), "TweetStatisticsActor");
-            _totalNumberOfTweetsActorRef = Context.System.ActorOf(Props.Create<TotalNumberOfTweetsActor>(), "TotalNumberOfTweetsActor"); 
+
+            TweetStatisticsActor.IActorRefs.Add("TweetGeneratorActor", Self);
+            TweetStatisticsActor.IActorRefs.Add("TwitterEngine", Context.Parent);
+
+            //_totalNumberOfTweetsActorRef = Context.System.ActorOf(Props.Create<TotalNumberOfTweetsActor>(), "TotalNumberOfTweetsActor");
 
             _tweetStatisticsActorRef.Tell(new TimeKeeperActorMessage(DateTime.Now.Ticks, null));
 
             Receive<InitToggleCommandRequest>(HandleInitToggleCommandRequest);
-            Receive<ChangeTotalNumberOfTweetsMessage>(HandleChangeTotalNumberOfTweetsMessage);
+            Receive<RefreshStatisticsRequest>(HandleRefreshStatisticsRequest);
         }
 
-        private void HandleChangeTotalNumberOfTweetsMessage(ChangeTotalNumberOfTweetsMessage message)
+        private void HandleRefreshStatisticsRequest(RefreshStatisticsRequest message)
         {
-            _logger.Debug($"Total Tweet NewTotal = {message.NewTotal}");
+            var getAllStatisticsMessageResponse = new GetAllStatisticsMessageResponse();
+            TweetStatisticsActor.IActorRefs["PercentOfTweetsContainingEmojisActor"].Forward(getAllStatisticsMessageResponse );
         }
+
 
         private void HandleInitToggleCommandRequest(InitToggleCommandRequest command)
         {
@@ -112,8 +141,16 @@ namespace JackIsBack.NetCoreLibrary.Actors
             builder.RegisterInstance(twitterClient).As<TwitterClient>();
             builder.RegisterType<TweetGeneratorActor>().As<ITweetGenerator>();
 
+            //Register Analyzer Actors
+            builder.RegisterType<PercentOfTweetsContainingEmojisAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<PercentOfTweetsWithPhotoUrlAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<PercentOfTweetsWithUrlAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopDomainsAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopEmojisUsedAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TopHashTagsAnalyzerActor>().InstancePerLifetimeScope();
+            builder.RegisterType<TweetAverageAnalyzerActor>().InstancePerLifetimeScope();
+
             //Register All Actors
-            builder.RegisterType<TotalNumberOfTweetsActor>().InstancePerLifetimeScope();
             builder.RegisterType<TweetAverageActor>().InstancePerLifetimeScope();
             builder.RegisterType<TopEmojisUsedActor>().InstancePerLifetimeScope();
             builder.RegisterType<PercentOfTweetsContainingEmojisActor>().InstancePerLifetimeScope();
@@ -124,15 +161,6 @@ namespace JackIsBack.NetCoreLibrary.Actors
             builder.RegisterType<TweetStatisticsActor>().InstancePerLifetimeScope();
             builder.RegisterType<TimeKeeperActor>().InstancePerLifetimeScope();
             builder.RegisterType<MainActor>();
-
-            //Register Analyzer Actors
-            builder.RegisterType<PercentOfTweetsContainingEmojisAnalyzerActor>().InstancePerLifetimeScope();
-            builder.RegisterType<PercentOfTweetsWithPhotoUrlAnalyzerActor>().InstancePerLifetimeScope();
-            builder.RegisterType<PercentOfTweetsWithUrlAnalyzerActor>().InstancePerLifetimeScope();
-            builder.RegisterType<TopDomainsAnalyzerActor>().InstancePerLifetimeScope();
-            builder.RegisterType<TopEmojisUsedAnalyzerActor>().InstancePerLifetimeScope();
-            builder.RegisterType<TopHashTagsAnalyzerActor>().InstancePerLifetimeScope();
-            builder.RegisterType<TweetAverageAnalyzerActor>().InstancePerLifetimeScope();
 
             //Register Messages
             builder.RegisterType<ChangeTotalNumberOfTweetsMessage>();
@@ -174,9 +202,7 @@ namespace JackIsBack.NetCoreLibrary.Actors
             if (!string.IsNullOrEmpty(e.Tweet.Text))
             {
                 //Increment Tweet Count
-                var changeTotalNumberOfTweetsMessage = new ChangeTotalNumberOfTweetsMessage(Operation.Increase, 1, false);
-
-                _totalNumberOfTweetsActorRef.Tell(changeTotalNumberOfTweetsMessage);
+                _tweetCount += 1;
 
                 // Instantiate instance of IMyTweetDTO and pass to MainActor
                 var myTweetDto = _container.Resolve<IMyTweetDTO>().AsInstanceOf<MyTweetDTO>();
@@ -186,8 +212,10 @@ namespace JackIsBack.NetCoreLibrary.Actors
                 myTweetDto.Tweet = (e.Tweet.Text.Length > 140) ?
                     e.Tweet.Text.Substring(0, 140) :
                     e.Tweet.Text;
+                myTweetDto.CurrentTweetCount = _tweetCount;
 
-                _mainActorRef.Tell(myTweetDto);
+                //_mainActorRef.Tell(myTweetDto);
+                ActorSystem.EventStream.Publish(myTweetDto);
             }
         }
 
