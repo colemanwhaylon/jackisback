@@ -1,9 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Event;
 using JackIsBack.NetCoreLibrary.DTO;
-using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Messages;
-using JackIsBack.NetCoreLibrary.Utility;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 {
@@ -11,6 +9,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
     {
         private ILoggingAdapter _logger = Context.GetLogger();
         private double? _percentOfTweetsContainingEmojis { get; set; } = 10.0;
+        private int? _tweetCount { get; set; } = 0;
 
         public PercentOfTweetsContainingEmojisActor()
         {
@@ -18,23 +17,20 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
             Receive<MyTweetDTO>(HandleTwitterMessageAsync);
             Receive<GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessageResponse);
         }
-        
-        private void HandleTwitterMessageAsync(IMyTweetDTO message)
+
+        private void HandleTwitterMessageAsync(MyTweetDTO message)
         {
             _percentOfTweetsContainingEmojis = message.PercentOfTweetsContainingEmojis;
-
-            _logger.Debug($"Private state was updated: PercentOfTweetsContainingEmojis = {message.PercentOfTweetsContainingEmojis} ");
-
-            var result = new GetTotalNumberOfTweetsMessage(percentOfTweetsContainingEmojis: message.PercentOfTweetsContainingEmojis);
-            Context.Sender.Tell(result, Self);
+            _tweetCount = message.CurrentTweetCount;
         }
 
         private void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)
         {
+            message.TotalNumberOfTweets = _tweetCount;
             message.PercentOfTweetsContainingEmojis = _percentOfTweetsContainingEmojis;
             TweetStatisticsActor.IActorRefs["PercentOfTweetsWithPhotoUrlActor"].Forward(message);
         }
 
-        
+
     }
 }

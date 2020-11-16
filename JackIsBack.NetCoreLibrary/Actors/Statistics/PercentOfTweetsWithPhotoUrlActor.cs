@@ -24,9 +24,9 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
             TweetStatisticsActor.IActorRefs["PercentOfTweetsWithUrlActor"].Forward(message);
         }
 
-        private void HandleTwitterMessageAsync(IMyTweetDTO message)
+        private void HandleTwitterMessageAsync(MyTweetDTO message)
         {
-            _logger.Debug($"PercentOfTweetsWithPhotoUrlActor got message: {message} ");
+            _percentOfTweetsWithPhotoUrl = message.PercentOfTweetsWithPhotoUrl;
         }
     }
 }

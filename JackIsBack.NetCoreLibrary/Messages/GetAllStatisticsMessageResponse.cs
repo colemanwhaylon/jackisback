@@ -4,7 +4,7 @@ namespace JackIsBack.NetCoreLibrary.Messages
 {
     public class GetAllStatisticsMessageResponse
     {
-        public int? TotalNumberOfTweets { get; private set; } = 0;
+        public int? TotalNumberOfTweets { get; set; } = 0;
         public double? PercentOfTweetsContainingEmojis { get; set; } = 0.0;
         public double? PercentOfTweetsWithPhotoUrl { get; set; } = 0.0;
         public double? PercentOfTweetsWithUrl { get; set; } = 0.0;

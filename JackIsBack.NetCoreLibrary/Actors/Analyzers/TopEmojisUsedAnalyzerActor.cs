@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Utility;
 
@@ -12,10 +13,10 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug("TopEmojisUsedAnalyzerActor created.");
 
-            Receive<IMyTweetDTO>(AnalyzeTwitterMessage);
+            Receive<MyTweetDTO>(AnalyzeTwitterMessage);
         }
 
-        private void AnalyzeTwitterMessage(IMyTweetDTO message)
+        private void AnalyzeTwitterMessage(MyTweetDTO message)
         {
             _logger.Debug($"TopEmojisUsedAnalyzerActor is analyzing tweet message: {message}");
 

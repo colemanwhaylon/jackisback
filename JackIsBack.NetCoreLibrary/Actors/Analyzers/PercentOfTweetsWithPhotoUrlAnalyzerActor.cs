@@ -1,5 +1,7 @@
-﻿using Akka.Actor;
+﻿using System.Text.RegularExpressions;
+using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Utility;
 
@@ -8,19 +10,25 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
     public class PercentOfTweetsWithPhotoUrlAnalyzerActor : ReceiveActor
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
+        private int _tweetCountWithPhotoUrl = 0;
+
         public PercentOfTweetsWithPhotoUrlAnalyzerActor()
         {
-            _logger.Debug("PercentOfTweetsWithPhotoUrlAnalyzerActor created.");
-
-            Receive<IMyTweetDTO>(AnalyzeTwitterMessage);
+            Receive<MyTweetDTO>(AnalyzeTwitterMessage);
         }
 
-        private void AnalyzeTwitterMessage(IMyTweetDTO message)
+        private void AnalyzeTwitterMessage(MyTweetDTO message)
         {
-            _logger.Debug($"PercentOfTweetsWithPhotoUrlAnalyzerActor is analyzing tweet message: {message.Tweet}");
+            var regex = @"(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?";
+            var result = Regex.Match(message.Tweet, regex);
 
+            if (result.Success)
+            {
+                ++_tweetCountWithPhotoUrl;
+
+                message.PercentOfTweetsWithPhotoUrl = (message.CurrentTweetCount / _tweetCountWithPhotoUrl) / 100.0;
+            }
             Context.ActorSelection(SharedStrings.PercentOfTweetsWithPhotoUrlActorPath).Tell(message);
-            //Context.Self.Tell(PoisonPill.Instance);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Akka.Actor;
 using Akka.Event;
+using JackIsBack.NetCoreLibrary.DTO;
 using JackIsBack.NetCoreLibrary.Interfaces;
 using JackIsBack.NetCoreLibrary.Utility;
 using Tweetinvi.Core.Extensions;
@@ -18,10 +19,10 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
         {
             _logger.Debug("TopHashTagsAnalyzerActor created.");
 
-            Receive<IMyTweetDTO>(AnalyzeTwitterMessage);
+            Receive<MyTweetDTO>(AnalyzeTwitterMessage);
         }
 
-        private void AnalyzeTwitterMessage(IMyTweetDTO message)
+        private void AnalyzeTwitterMessage(MyTweetDTO message)
         {
             _logger.Debug($"TopHashTagsAnalyzerActor is analyzing tweet message: {message}");
 

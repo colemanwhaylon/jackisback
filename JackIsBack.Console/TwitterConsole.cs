@@ -20,12 +20,13 @@ using ICommand = DustInTheWind.ConsoleTools.Menues.ICommand;
 
 namespace JackIsBack.Console
 {
-    public class TwitterConsole
+    public class TwitterConsole : ReceiveActor
     {
         private static ActorSystem ActorSystem;
         private static YesNoAnswer _answer = YesNoAnswer.Yes;
+        private static IActorRef _twitterConsoleRef;
         private static IActorRef _twitterEngineActorRef;
-
+        
         private static int? _totalNumberOfTweets = 0;
         private static double? _percentOfTweetsWithEmojis = 0.0;
         private static double? _percentOfTweetsContainingURL = 0.0;
@@ -38,6 +39,37 @@ namespace JackIsBack.Console
         private static List<string>? _topDomainsUsed = new List<string>();
         private static List<string>? _topHashTagsUsed = new List<string>();
 
+        private static int Count = 0;
+
+        public TwitterConsole()
+        {
+            Receive<GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessageResponse);
+        }
+
+        private static void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)
+        {
+            try
+            {
+                if (message != null)
+                {
+                    _totalNumberOfTweets = message.TotalNumberOfTweets;
+                    _percentOfTweetsContainingPhotoURL = message.PercentOfTweetsWithPhotoUrl;
+                    _percentOfTweetsContainingURL = message.PercentOfTweetsWithUrl;
+                    _percentOfTweetsWithEmojis = message.PercentOfTweetsContainingEmojis;
+                    _averageTweetsPerHour = message.AverageTweetsPerHour;
+                    _averageTweetsPerMinute = message.AverageTweetsPerMinute;
+                    _averageTweetsPerSecond = message.AverageTweetsPerSecond;
+                    _topDomainsUsed = message.TopDomains;
+                    _topEmojisUsed = message.TopEmojis;
+                    _topHashTagsUsed = message.TopHashTags;
+                }
+            }
+            catch (Exception exception)
+            {
+                System.Console.WriteLine($"Exception message: {exception.Message}, StackTrace: {exception.StackTrace}");
+            }
+        }
+
         public static void Main(string[] args)
         {
             try
@@ -47,6 +79,8 @@ namespace JackIsBack.Console
                 var result = SetupActorSystem();
                 if (result == InitToggleCommandResponse.StartedUp)
                 {
+                   // ActorSystem.EventStream.Subscribe(_twitterConsoleRef, typeof(GetAllStatisticsMessageResponse));
+
                     DisplayMenu();
                 }
                 else
@@ -65,12 +99,16 @@ namespace JackIsBack.Console
 
         private static InitToggleCommandResponse SetupActorSystem()
         {
+            //todo:Move back ActorSystem from constructor init
             ActorSystem = ActorSystem.Create("TwitterStatisticsActorSystem");
 
+
             _twitterEngineActorRef = ActorSystem.ActorOf<TwitterEngine>("TwitterEngine");
+            _twitterConsoleRef = ActorSystem.ActorOf<TwitterConsole>("TwitterConsole");
+            //TweetStatisticsActor.IActorRefs.Add("TwitterEngine", _twitterEngineActorRef);
+            //TweetStatisticsActor.IActorRefs.Add("TwitterConsole", _twitterConsoleRef);
+
             var result = _twitterEngineActorRef.Ask<InitToggleCommandResponse>(InitToggleCommandRequest.StartUp).Result;
-
-
 
             return result;
         }
@@ -209,8 +247,7 @@ namespace JackIsBack.Console
             System.Console.WriteLine();
 
             //RefreshProgressBar();
-            RefreshAllDataFields();
-            UpdateStatisticsAndRebind();
+            SendSignalToRefreshAllDataFields();
 
             //System.Console.Clear();
         }
@@ -262,30 +299,10 @@ namespace JackIsBack.Console
 
         }
 
-        public static void RefreshAllDataFields()
+        public static void SendSignalToRefreshAllDataFields()
         {
             var message = RefreshStatisticsRequest.Update;
             _twitterEngineActorRef.Tell(message);
-        }
-
-        public static void UpdateStatisticsAndRebind()
-        {
-            var message = new GetAllStatisticsMessageResponse();
-            var response = _twitterEngineActorRef.Ask<GetAllStatisticsMessageResponse>(message).Result;
-            if (response != null)
-            {
-                _totalNumberOfTweets = response.TotalNumberOfTweets;
-                _percentOfTweetsContainingPhotoURL = response.PercentOfTweetsWithPhotoUrl;
-                _percentOfTweetsContainingURL = response.PercentOfTweetsWithUrl;
-                _percentOfTweetsWithEmojis = response.PercentOfTweetsContainingEmojis;
-                _averageTweetsPerHour = response.AverageTweetsPerHour;
-                _averageTweetsPerMinute = response.AverageTweetsPerMinute;
-                _averageTweetsPerSecond = response.AverageTweetsPerSecond;
-                _topDomainsUsed = response.TopDomains;
-                _topEmojisUsed = response.TopEmojis;
-                _topHashTagsUsed = response.TopHashTags;
-            }
-
         }
     }
 }
