@@ -1,10 +1,7 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using Akka.Actor;
+﻿using Akka.Actor;
 using Akka.Event;
 using JackIsBack.NetCoreLibrary.DTO;
-using JackIsBack.NetCoreLibrary.Interfaces;
-using JackIsBack.NetCoreLibrary.Utility;
+using System.Text.RegularExpressions;
 
 namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
 {
@@ -26,9 +23,12 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
             if (result.Success)
             {
                 ++_tweetCountWithEmojis;
-                
-                message.PercentOfTweetsContainingEmojis = (message.CurrentTweetCount / _tweetCountWithEmojis) / 100.0;
             }
+
+            message.PercentOfTweetsContainingEmojis = message.CurrentTweetCount != 0 ?
+                ((double)_tweetCountWithEmojis / message.CurrentTweetCount) * 100.0 :
+                0.0;
+
             TweetStatisticsActor.IActorRefs["PercentOfTweetsContainingEmojisActor"].Tell(message, Self);
         }
     }

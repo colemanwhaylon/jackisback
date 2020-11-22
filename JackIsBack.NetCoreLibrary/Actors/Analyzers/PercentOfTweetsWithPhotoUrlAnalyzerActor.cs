@@ -11,6 +11,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
     {
         private readonly ILoggingAdapter _logger = Context.GetLogger();
         private int _tweetCountWithPhotoUrl = 0;
+        private double? _previousPercentOfTweetsWithPhotoUrl = 0;
 
         public PercentOfTweetsWithPhotoUrlAnalyzerActor()
         {
@@ -26,9 +27,14 @@ namespace JackIsBack.NetCoreLibrary.Actors.Analyzers
             {
                 ++_tweetCountWithPhotoUrl;
 
-                message.PercentOfTweetsWithPhotoUrl = (message.CurrentTweetCount / _tweetCountWithPhotoUrl) / 100.0;
+                message.PercentOfTweetsWithPhotoUrl = (((double)_tweetCountWithPhotoUrl) / message.CurrentTweetCount) * 100.0;
+                _previousPercentOfTweetsWithPhotoUrl = message.PercentOfTweetsWithPhotoUrl;
             }
-            Context.ActorSelection(SharedStrings.PercentOfTweetsWithPhotoUrlActorPath).Tell(message);
+
+            if (message.PercentOfTweetsWithPhotoUrl == 0)
+                message.PercentOfTweetsWithPhotoUrl = _previousPercentOfTweetsWithPhotoUrl;
+
+            TweetStatisticsActor.IActorRefs["PercentOfTweetsWithPhotoUrlActor"].Tell(message, Self);
         }
     }
 }

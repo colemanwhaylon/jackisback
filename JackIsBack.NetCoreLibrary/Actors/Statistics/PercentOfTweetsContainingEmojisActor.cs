@@ -8,8 +8,8 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
     public class PercentOfTweetsContainingEmojisActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private double? _percentOfTweetsContainingEmojis { get; set; } = 10.0;
-        private int? _tweetCount { get; set; } = 0;
+        private double? _percentOfTweetsContainingEmojis = 0.0;
+        private int? _tweetCount = 0;
 
         public PercentOfTweetsContainingEmojisActor()
         {
@@ -20,8 +20,8 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
 
         private void HandleTwitterMessageAsync(MyTweetDTO message)
         {
-            _percentOfTweetsContainingEmojis = message.PercentOfTweetsContainingEmojis;
             _tweetCount = message.CurrentTweetCount;
+            _percentOfTweetsContainingEmojis = message.PercentOfTweetsContainingEmojis;
         }
 
         private void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)

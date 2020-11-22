@@ -204,9 +204,9 @@ namespace JackIsBack.Console
             _topEmojiUsed = ((_topEmojisUsed != null && _topEmojisUsed.Any()) ? _topEmojisUsed?.First() : ":)") ?? string.Empty;
             dataGrid.Rows.Add($"{_totalNumberOfTweets}",
                 $"{_topEmojiUsed}",
-                $"{_percentOfTweetsWithEmojis}",
-                $"{_percentOfTweetsContainingURL}",
-                $"{_percentOfTweetsContainingPhotoURL}");
+                $"{Math.Round(_percentOfTweetsWithEmojis.Value, 2)}%",
+                $"{Math.Round(_percentOfTweetsContainingURL.Value, 2)}%",
+                $"{Math.Round(_percentOfTweetsContainingPhotoURL.Value, 2)}%");
             dataGrid.DisplayBorderBetweenRows = true;
             dataGrid.DisplayColumnHeaders = true;
             dataGrid.BorderTemplate = BorderTemplate.DoubleLineBorderTemplate;

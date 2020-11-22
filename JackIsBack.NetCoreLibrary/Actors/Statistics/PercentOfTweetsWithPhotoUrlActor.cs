@@ -9,7 +9,7 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
     public class PercentOfTweetsWithPhotoUrlActor : ReceiveActor
     {
         private ILoggingAdapter _logger = Context.GetLogger();
-        private double? _percentOfTweetsWithPhotoUrl { get; set; } = 15.0;
+        private double? _percentOfTweetsWithPhotoUrl = 0.0;
 
         public PercentOfTweetsWithPhotoUrlActor()
         {
@@ -18,15 +18,16 @@ namespace JackIsBack.NetCoreLibrary.Actors.Statistics
             Receive< GetAllStatisticsMessageResponse>(HandleGetAllStatisticsMessageResponse);
         }
 
+        private void HandleTwitterMessageAsync(MyTweetDTO message)
+        {
+            _percentOfTweetsWithPhotoUrl = message.PercentOfTweetsWithPhotoUrl;
+        }
+
         private void HandleGetAllStatisticsMessageResponse(GetAllStatisticsMessageResponse message)
         {
             message.PercentOfTweetsWithPhotoUrl = _percentOfTweetsWithPhotoUrl;
             TweetStatisticsActor.IActorRefs["PercentOfTweetsWithUrlActor"].Forward(message);
         }
 
-        private void HandleTwitterMessageAsync(MyTweetDTO message)
-        {
-            _percentOfTweetsWithPhotoUrl = message.PercentOfTweetsWithPhotoUrl;
-        }
     }
 }

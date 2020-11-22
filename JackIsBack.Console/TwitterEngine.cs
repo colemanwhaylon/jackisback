@@ -39,7 +39,6 @@ namespace JackIsBack.Console
         {
             _logger.Debug($"MessageResponse: {messageResponse}");
             Statistics = messageResponse;
-            //Context.System.EventStream.Publish(Statistics);
             
             Context.System.ActorSelection("/user/TwitterConsole").Tell(Statistics, Self);
         }
